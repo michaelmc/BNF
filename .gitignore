@@ -1,7 +1,13 @@
 *.class
 .DS_Store
+*.DS_Store
 
 # Package Files #
 *.jar
 *.war
 *.ear
+
+.classpath
+.project
+*.classpath
+*.project
