@@ -1,8 +1,8 @@
 package bnf;
 
 public class Token {
-		TokenType type;
-		String value;
+	private TokenType type;
+	private String value;
 	
 	public Token(TokenType type, String value) {
 		this.type = type;

@@ -8,19 +8,5 @@ package bnf;
  *
  */
 public enum TokenType {
-
-	NONTERMINAL(),
-	
-	TERMINAL(),
-	
-	METASYMBOL(),
-	
-	SEQUENCE(),
-	
-	OR(),
-	
-	OPTION(),
-	
-	ANYNUM(); 
-	
+	NONTERMINAL, TERMINAL, METASYMBOL, SEQUENCE, OR, OPTION, ANYNUM, ERROR; 	
 }
