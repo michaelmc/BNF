@@ -14,15 +14,18 @@ import java.util.NoSuchElementException;
  */
 public class BnfTokenizer implements Iterator<Token> {
     private BufferedReader input;
-    private int position;
     private enum States { READY, IN_TERMINAL, IN_NONTERMINAL, IN_DEFINED, ERROR };
+    private Token lastToken;
+    private boolean useLastToken;
 
+    
     /**
      * @param reader
      */
     public BnfTokenizer(java.io.Reader reader) {
         BufferedReader input = new BufferedReader(reader);
-        position = -1;
+        lastToken = null;
+        useLastToken = false;
     }
 
     @Override
@@ -44,6 +47,10 @@ public class BnfTokenizer implements Iterator<Token> {
 
     @Override
     public Token next() {
+        if (useLastToken = true) {
+            useLastToken = false;
+            return lastToken;
+        }
         int readInt = -1;
         char ch;
         States state;
@@ -68,7 +75,8 @@ public class BnfTokenizer implements Iterator<Token> {
                     value = ch + "";
                     if (Character.isWhitespace(ch)) break;
                     if (".|[]{}".contains(ch + "")) {
-                        return new Token(TokenType.METASYMBOL, value);
+                        lastToken = new Token(TokenType.METASYMBOL, value);
+                        return lastToken;
                     }
                     if (":".contains(ch + "")) {
                         state = States.IN_DEFINED;
@@ -79,7 +87,8 @@ public class BnfTokenizer implements Iterator<Token> {
                         break;
                     }
                     if (">".contains(ch + "")) {
-                        return new Token(TokenType.ERROR, value);
+                        lastToken = new Token(TokenType.ERROR, value);
+                        return lastToken;
                     }
                     else {
                         state = States.IN_TERMINAL;
@@ -91,16 +100,19 @@ public class BnfTokenizer implements Iterator<Token> {
                     if (value == "<") {
                         value += ch;
                         if (ch == '>' || ch == '\n') {
-                            return new Token(TokenType.ERROR, value);
+                            lastToken = new Token(TokenType.ERROR, value); 
+                            return lastToken;
                         } else {
                             break;
                         }
                     } else {
                         value += ch;
                         if (ch == '\n') {
-                            return new Token(TokenType.ERROR, value);
+                            lastToken = new Token(TokenType.ERROR, value);
+                            return lastToken;
                         } else if (ch == '>') {
-                            return new Token(TokenType.NONTERMINAL, value);
+                            lastToken = new Token(TokenType.NONTERMINAL, value);
+                            return lastToken;
                         } else {
                             break;
                         }
@@ -111,14 +123,16 @@ public class BnfTokenizer implements Iterator<Token> {
                     if (value == "::") {
                         break;
                     } else if (value == "::=") {
-                        return new Token(TokenType.METASYMBOL, value);
+                        lastToken = new Token(TokenType.METASYMBOL, value);
+                        return lastToken;
                     } else {
                         state = States.IN_TERMINAL;
                         break;
                     }
                 }
                 default: {
-                    return new Token(TokenType.ERROR, value);
+                    lastToken = new Token(TokenType.ERROR, value); 
+                    return lastToken;
                 }
             }
         } while (hasNext());
@@ -126,7 +140,7 @@ public class BnfTokenizer implements Iterator<Token> {
     }
     
     public void back() {
-        
+        useLastToken = true;        
     }
     
     @Override
