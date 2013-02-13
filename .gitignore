@@ -8,6 +8,4 @@
 *.ear
 
 .classpath
-.project
 *.classpath
-*.project
