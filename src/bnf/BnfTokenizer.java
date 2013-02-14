@@ -3,7 +3,6 @@
  */
 package bnf;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
@@ -15,7 +14,7 @@ import java.util.NoSuchElementException;
  */
 public class BnfTokenizer implements Iterator<Token> {
     private Reader input;
-    private enum States { READY, IN_TERMINAL, IN_NONTERMINAL, IN_DEFINED, ERROR };
+    private enum States { READY, IN_TERMINAL, IN_NONTERMINAL, IN_DEFINED };
     private Token lastToken;
     private boolean useLastToken;
     
@@ -97,7 +96,7 @@ public class BnfTokenizer implements Iterator<Token> {
                 case IN_TERMINAL: {
                     if (".|[]{}<>".contains(ch + "") && !(value.charAt(value.length() - 1) == '\\')) {
                         throw new IllegalArgumentException("Terminals cannot contain metasymbols or angle brackets.");
-                    } else if (ch == ' ' && !(value.charAt(value.length() - 1) == '\\')) {
+                    } else if (Character.isWhitespace(ch) && !(value.charAt(value.length() - 1) == '\\')) {
                         lastToken = new Token(TokenType.TERMINAL, value);
                     } else if (ch == '=' && value.endsWith("::") && !value.endsWith("\\::")) {
                         throw new IllegalArgumentException("Whitespace must separate terminals and metasymbols");
