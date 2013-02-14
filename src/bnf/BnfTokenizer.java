@@ -5,6 +5,7 @@ package bnf;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -13,7 +14,7 @@ import java.util.NoSuchElementException;
  *
  */
 public class BnfTokenizer implements Iterator<Token> {
-    private BufferedReader input;
+    private Reader input;
     private enum States { READY, IN_TERMINAL, IN_NONTERMINAL, IN_DEFINED, ERROR };
     private Token lastToken;
     private boolean useLastToken;
@@ -22,7 +23,7 @@ public class BnfTokenizer implements Iterator<Token> {
      * @param reader
      */
     public BnfTokenizer(java.io.Reader reader) {
-        BufferedReader input = new BufferedReader(reader);
+        input = reader;
         lastToken = null;
         useLastToken = false;
     }
@@ -30,7 +31,7 @@ public class BnfTokenizer implements Iterator<Token> {
     @Override
     public boolean hasNext() {
         try {
-            input.mark(10);
+            input.mark(1);
             int chr = input.read();
             input.reset();
             if (chr == -1) {
@@ -46,8 +47,7 @@ public class BnfTokenizer implements Iterator<Token> {
 
     @Override
     public Token next() {
-        
-        if (useLastToken = true) {
+        if (useLastToken == true) {
             useLastToken = false;
             return lastToken;
         }
@@ -95,7 +95,16 @@ public class BnfTokenizer implements Iterator<Token> {
                     }
                 }
                 case IN_TERMINAL: {
-                    // use value.charAt(value.length() - 1) to check if the last char is an escape \ 
+                    if (".|[]{}<>".contains(ch + "") && !(value.charAt(value.length() - 1) == '\\')) {
+                        throw new IllegalArgumentException("Terminals cannot contain metasymbols or angle brackets.");
+                    } else if (ch == ' ' && !(value.charAt(value.length() - 1) == '\\')) {
+                        lastToken = new Token(TokenType.TERMINAL, value);
+                    } else if (ch == '=' && value.endsWith("::") && !value.endsWith("\\::")) {
+                        throw new IllegalArgumentException("Whitespace must separate terminals and metasymbols");
+                    } else {
+                        value += ch;
+                        break;
+                    }
                 }
                 case IN_NONTERMINAL: {
                     value += ch;
@@ -112,9 +121,9 @@ public class BnfTokenizer implements Iterator<Token> {
                 }
                 case IN_DEFINED: { // TODO test this
                     value += ch;
-                    if (value == "::") {
+                    if (value.startsWith("::") && value.length() == 2) {
                         break;
-                    } else if (value == "::=") {
+                    } else if (value.startsWith("::=") && value.length() == 3) {
                         lastToken = new Token(TokenType.METASYMBOL, value);
                         return lastToken;
                     } else {
@@ -139,5 +148,8 @@ public class BnfTokenizer implements Iterator<Token> {
     public void remove() {
         throw new UnsupportedOperationException("Remove is not supported.");
     }
+    
+    
+
 
 }
