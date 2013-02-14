@@ -17,7 +17,6 @@ public class BnfTokenizer implements Iterator<Token> {
     private enum States { READY, IN_TERMINAL, IN_NONTERMINAL, IN_DEFINED, ERROR };
     private Token lastToken;
     private boolean useLastToken;
-
     
     /**
      * @param reader
@@ -47,6 +46,7 @@ public class BnfTokenizer implements Iterator<Token> {
 
     @Override
     public Token next() {
+        
         if (useLastToken = true) {
             useLastToken = false;
             return lastToken;
@@ -87,35 +87,27 @@ public class BnfTokenizer implements Iterator<Token> {
                         break;
                     }
                     if (">".contains(ch + "")) {
-                        lastToken = new Token(TokenType.ERROR, value);
-                        return lastToken;
+                        throw new IllegalArgumentException("No token can start with '>'.");
                     }
                     else {
                         state = States.IN_TERMINAL;
                         break;
                     }
                 }
-                case IN_TERMINAL: {}
+                case IN_TERMINAL: {
+                    // use value.charAt(value.length() - 1) to check if the last char is an escape \ 
+                }
                 case IN_NONTERMINAL: {
-                    if (value == "<") {
-                        value += ch;
-                        if (ch == '>' || ch == '\n') {
-                            lastToken = new Token(TokenType.ERROR, value); 
-                            return lastToken;
-                        } else {
-                            break;
-                        }
+                    value += ch;
+                    if (ch == '\n') {
+                        throw new IllegalArgumentException("Nonterminals cannot contain newlines.");
+                    } else if (ch == '<') {
+                        throw new IllegalArgumentException("Nonterminals cannot contain angle brackets.");
+                    } else if (ch == '>') {
+                        lastToken = new Token(TokenType.NONTERMINAL, value);
+                        return lastToken;
                     } else {
-                        value += ch;
-                        if (ch == '\n') {
-                            lastToken = new Token(TokenType.ERROR, value);
-                            return lastToken;
-                        } else if (ch == '>') {
-                            lastToken = new Token(TokenType.NONTERMINAL, value);
-                            return lastToken;
-                        } else {
-                            break;
-                        }
+                        break;
                     }
                 }
                 case IN_DEFINED: { // TODO test this
@@ -131,8 +123,8 @@ public class BnfTokenizer implements Iterator<Token> {
                     }
                 }
                 default: {
-                    lastToken = new Token(TokenType.ERROR, value); 
-                    return lastToken;
+//                    lastToken = new Token(TokenType.ERROR, value); 
+//                    return lastToken;
                 }
             }
         } while (hasNext());
