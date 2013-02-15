@@ -49,8 +49,9 @@ public class BnfTokenizer implements Iterator<Token> {
         if (useLastToken == true) {
             useLastToken = false;
             return lastToken;
-        }
+        }   
         int readInt = -1;
+        int nextInt = -1;
         char ch;
         States state;
         String value = "";
@@ -61,6 +62,9 @@ public class BnfTokenizer implements Iterator<Token> {
         do {
             try {
                 readInt = input.read();
+                input.mark(1);
+                nextInt = input.read();
+                input.reset();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -106,7 +110,7 @@ public class BnfTokenizer implements Iterator<Token> {
                         break;
                     }
                 }
-                case IN_NONTERMINAL: {
+                case IN_NONTERMINAL: { // TODO fix so it accounts for nextInt metasymbols and end of inputs
                     value += ch;
                     if (ch == '\n') {
                         throw new IllegalArgumentException("Nonterminals cannot contain newlines.");
@@ -115,11 +119,13 @@ public class BnfTokenizer implements Iterator<Token> {
                     } else if (ch == '>') {
                         lastToken = new Token(TokenType.NONTERMINAL, value);
                         return lastToken;
+                    } else if (nextInt == -1) {
+                        throw new IllegalArgumentException("Nonterminal at end of input doesn't have closing angle bracket.");
                     } else {
                         break;
                     }
                 }
-                case IN_DEFINED: { // TODO test this
+                case IN_DEFINED: { // TODO test, fix so it accounts for nextInt metasymbols and end of inputs
                     value += ch;
                     if (value.startsWith("::") && value.length() == 2) {
                         break;
@@ -146,7 +152,7 @@ public class BnfTokenizer implements Iterator<Token> {
 //                return lastToken;
                 throw new IllegalArgumentException("Nonterminal at end of input doesn't have closing angle bracket.");
             } else if (state == States.IN_DEFINED) {
-                lastToken = new Token(TokenType.METASYMBOL, value);
+                lastToken = new Token(TokenType.TERMINAL, value);
                 return lastToken;
             }
         }

@@ -13,6 +13,8 @@ public class BnfTokenizerTest {
     BnfTokenizer tokenizerEmpty;
     BnfTokenizer tokenizerNonterminal;
     BnfTokenizer tokenizerNotClosedNonterminal;
+    BnfTokenizer tokenizerSplitTerminal;
+    BnfTokenizer tokenizerSplitTerminal2;
 
     @Before
     public void setUp() throws Exception {
@@ -21,6 +23,8 @@ public class BnfTokenizerTest {
         tokenizerTerminal = new BnfTokenizer(new StringReader("terminal"));
         tokenizerNonterminal = new BnfTokenizer(new StringReader("<non term-inal>"));
         tokenizerNotClosedNonterminal = new BnfTokenizer(new StringReader("<nottermina lwhat"));
+        tokenizerSplitTerminal = new BnfTokenizer(new StringReader("abc\\ abc"));
+        tokenizerSplitTerminal2 = new BnfTokenizer(new StringReader("<answer>::=ye\ns|no."));
     }
 
     @Test
@@ -39,9 +43,15 @@ public class BnfTokenizerTest {
         assertTrue(tokenizerTerminal.hasNext());
         assertEquals(new Token(TokenType.TERMINAL, "terminal"), tokenizerTerminal.next());
         assertFalse(tokenizerTerminal.hasNext());
+        
         assertTrue(tokenizerNonterminal.hasNext());
         assertEquals(new Token(TokenType.NONTERMINAL, "<non term-inal>"), tokenizerNonterminal.next());
         assertFalse(tokenizerNonterminal.hasNext());
+        
+        assertTrue(tokenizerSplitTerminal.hasNext());
+        assertEquals(new Token(TokenType.TERMINAL, "abc\\ abc"), tokenizerSplitTerminal.next());
+        assertFalse(tokenizerSplitTerminal.hasNext());
+        
         assertTrue(tokenizerOne.hasNext());
         assertEquals(new Token(TokenType.NONTERMINAL, "<nonterminal>"), tokenizerOne.next());
         assertTrue(tokenizerOne.hasNext());
@@ -51,6 +61,20 @@ public class BnfTokenizerTest {
         assertTrue(tokenizerOne.hasNext());
         assertEquals(new Token(TokenType.TERMINAL, "terminal"), tokenizerOne.next()); //XXX this is where it fails
         assertFalse(tokenizerOne.hasNext());
+        
+        assertTrue(tokenizerSplitTerminal2.hasNext());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<answer>"), tokenizerSplitTerminal2.next());       
+        assertTrue(tokenizerSplitTerminal2.hasNext());
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), tokenizerSplitTerminal2.next());
+        assertTrue(tokenizerSplitTerminal2.hasNext());
+        assertEquals(new Token(TokenType.TERMINAL, "ye"), tokenizerSplitTerminal2.next());
+        assertTrue(tokenizerSplitTerminal2.hasNext());
+        assertEquals(new Token(TokenType.TERMINAL, "s"), tokenizerSplitTerminal2.next());
+        assertTrue(tokenizerSplitTerminal2.hasNext());
+        assertEquals(new Token(TokenType.METASYMBOL, "|"), tokenizerSplitTerminal2.next());
+        assertTrue(tokenizerSplitTerminal2.hasNext());
+        assertEquals(new Token(TokenType.TERMINAL, "no"), tokenizerSplitTerminal2.next());
+        assertFalse(tokenizerSplitTerminal2.hasNext());
     }
 
     @Test(expected=IllegalArgumentException.class)
