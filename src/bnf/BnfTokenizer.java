@@ -98,6 +98,7 @@ public class BnfTokenizer implements Iterator<Token> {
                         throw new IllegalArgumentException("Terminals cannot contain metasymbols or angle brackets.");
                     } else if (Character.isWhitespace(ch) && !(value.charAt(value.length() - 1) == '\\')) {
                         lastToken = new Token(TokenType.TERMINAL, value);
+                        return lastToken;
                     } else if (ch == '=' && value.endsWith("::") && !value.endsWith("\\::")) {
                         throw new IllegalArgumentException("Whitespace must separate terminals and metasymbols");
                     } else {
@@ -136,6 +137,19 @@ public class BnfTokenizer implements Iterator<Token> {
                 }
             }
         } while (hasNext());
+        if (value != "") {
+            if (state == States.IN_TERMINAL) {
+                lastToken = new Token(TokenType.TERMINAL, value);
+                return lastToken;
+            } else if (state == States.IN_NONTERMINAL) {
+//                lastToken = new Token(TokenType.NONTERMINAL, value);
+//                return lastToken;
+                throw new IllegalArgumentException("Nonterminal at end of input doesn't have closing angle bracket.");
+            } else if (state == States.IN_DEFINED) {
+                lastToken = new Token(TokenType.METASYMBOL, value);
+                return lastToken;
+            }
+        }
         return null;
     }
     
