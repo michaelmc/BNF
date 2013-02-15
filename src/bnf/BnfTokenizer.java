@@ -93,22 +93,58 @@ public class BnfTokenizer implements Iterator<Token> {
                         throw new IllegalArgumentException("No token can start with '>'.");
                     }
                     else {
-                        state = States.IN_TERMINAL;
-                        break;
+                        if (nextInt != -1 && ".|[]{}<>".contains((char)nextInt + "")) {
+                            lastToken = new Token(TokenType.TERMINAL, value);
+                            return lastToken;
+                        } else {
+                            state = States.IN_TERMINAL;
+                            break;
+                        }
                     }
                 }
                 case IN_TERMINAL: {
-                    if (".|[]{}<>".contains(ch + "") && !(value.charAt(value.length() - 1) == '\\')) {
-                        throw new IllegalArgumentException("Terminals cannot contain metasymbols or angle brackets.");
-                    } else if (Character.isWhitespace(ch) && !(value.charAt(value.length() - 1) == '\\')) {
+                    if (Character.isWhitespace(ch) && !(value.charAt(value.length() - 1) == '\\')) {
                         lastToken = new Token(TokenType.TERMINAL, value);
                         return lastToken;
-                    } else if (ch == '=' && value.endsWith("::") && !value.endsWith("\\::")) {
-                        throw new IllegalArgumentException("Whitespace must separate terminals and metasymbols");
                     } else {
-                        value += ch;
-                        break;
+                        if (nextInt == -1 || (".|[]{}<>".contains((char)nextInt + "")) && !("\\".contains(ch + ""))) {
+                            // next int ends line or is a metasymbol
+                            lastToken = new Token(TokenType.TERMINAL, value);
+                            return lastToken;
+                        } else if ("=".contains((char)nextInt + "")) {
+                            
+                        } else {
+                            value += ch;
+                            break;
+                        }
                     }
+                    
+                    
+                        //                        
+//                    } else {
+//                        if (nextInt == -1) {
+//                            value += ch;
+//                            lastToken = new Token(TokenType.TERMINAL, value);
+//                            return lastToken;
+//                        } else if (".|[]{}<>".contains((char)nextInt + "")) {
+//                            
+//                        } else {
+//                            
+//                        }
+//                    }
+//                    
+//                    
+//                    if (".|[]{}<>".contains(ch + "") && !(value.charAt(value.length() - 1) == '\\')) {
+//                        throw new IllegalArgumentException("Terminals cannot contain metasymbols or angle brackets.");
+//                    } else if (Character.isWhitespace(ch) && !(value.charAt(value.length() - 1) == '\\')) {
+//                        lastToken = new Token(TokenType.TERMINAL, value);
+//                        return lastToken;
+//                    } else if (ch == '=' && value.endsWith("::") && !value.endsWith("\\::")) {
+//                        throw new IllegalArgumentException("Whitespace must separate terminals and metasymbols");
+//                    } else {
+//                        value += ch;
+//                        break;
+//                    }
                 }
                 case IN_NONTERMINAL: { // TODO fix so it accounts for nextInt metasymbols and end of inputs
                     value += ch;
@@ -127,15 +163,33 @@ public class BnfTokenizer implements Iterator<Token> {
                 }
                 case IN_DEFINED: { // TODO test, fix so it accounts for nextInt metasymbols and end of inputs
                     value += ch;
-                    if (value.startsWith("::") && value.length() == 2) {
-                        break;
-                    } else if (value.startsWith("::=") && value.length() == 3) {
+                    if (value.startsWith("::=") && value.length() == 3) {
                         lastToken = new Token(TokenType.METASYMBOL, value);
                         return lastToken;
+                    } else if (value.startsWith("::") && value.length() == 2) {
+                        if (nextInt == -1) {
+                            lastToken = new Token(TokenType.TERMINAL, value);
+                            return lastToken;
+                        } else if ((char)nextInt != '=') {
+                            state = States.IN_TERMINAL;
+                            break;
+                        } else {
+                            break;
+                        }
                     } else {
                         state = States.IN_TERMINAL;
                         break;
                     }
+                                                            
+//                    if (value.startsWith("::") && value.length() == 2) {
+//                        break;
+//                    } else if (value.startsWith("::=") && value.length() == 3) {
+//                        lastToken = new Token(TokenType.METASYMBOL, value);
+//                        return lastToken;
+//                    } else {
+//                        state = States.IN_TERMINAL;
+//                        break;
+//                    }
                 }
                 default: {
 //                    lastToken = new Token(TokenType.ERROR, value); 
