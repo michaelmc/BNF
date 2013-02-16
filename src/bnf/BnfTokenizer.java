@@ -14,7 +14,7 @@ import java.util.NoSuchElementException;
  */
 public class BnfTokenizer implements Iterator<Token> {
     private Reader input;
-    private enum States { READY, IN_TERMINAL, IN_NONTERMINAL, IN_DEFINED };
+    private enum States { READY, IN_TERMINAL, IN_NONTERMINAL, IN_METASYMBOL, IN_ESCAPED, IN_DEFINED };
     private Token lastToken;
     private boolean useLastToken;
     
@@ -51,20 +51,19 @@ public class BnfTokenizer implements Iterator<Token> {
             return lastToken;
         }   
         int readInt = -1;
-        int nextInt = -1;
         char ch;
+        int nextInt = -1;
+        int secondInt = -1;
         States state;
-        String value = "";
+        StringBuilder value = new StringBuilder();
         if (!hasNext()) {
             throw new NoSuchElementException("No more characters in the input.");
         }
         state = States.READY;
         do {
             try {
-                readInt = input.read();
                 input.mark(1);
-                nextInt = input.read();
-                input.reset();
+                readInt = input.read();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -75,138 +74,147 @@ public class BnfTokenizer implements Iterator<Token> {
             }
             switch (state) {
                 case READY: {
-                    value = ch + "";
                     if (Character.isWhitespace(ch)) break;
-                    if (".|[]{}".contains(ch + "")) {
-                        lastToken = new Token(TokenType.METASYMBOL, value);
-                        return lastToken;
+                    if ("\\".contains(ch + "")) {
+                        state = States.IN_ESCAPED;
+                        break;
                     }
-                    if (":".contains(ch + "")) {
+                    value.append(ch);
+                    if (".|[]{}".contains(ch + "")) {
+                        lastToken = new Token(TokenType.METASYMBOL, value.toString());
+                        return lastToken;
+                    } else if (":".contains(ch + "")) {
                         state = States.IN_DEFINED;
                         break;
-                    }
-                    if ("<".contains(ch + "")) {
+                    } else if ("<".contains(ch + "")) {
                         state = States.IN_NONTERMINAL;
                         break;
-                    }
-                    if (">".contains(ch + "")) {
-                        throw new IllegalArgumentException("No token can start with '>'.");
-                    }
-                    else {
-                        if (nextInt != -1 && ".|[]{}<>".contains((char)nextInt + "")) {
-                            lastToken = new Token(TokenType.TERMINAL, value);
-                            return lastToken;
-                        } else {
-                            state = States.IN_TERMINAL;
-                            break;
-                        }
-                    }
-                }
-                case IN_TERMINAL: {
-                    if (Character.isWhitespace(ch) && !(value.charAt(value.length() - 1) == '\\')) {
-                        lastToken = new Token(TokenType.TERMINAL, value);
-                        return lastToken;
-                    } else {
-                        if (nextInt == -1 || (".|[]{}<>".contains((char)nextInt + "")) && !("\\".contains(ch + ""))) {
-                            // next int ends line or is a metasymbol
-                            lastToken = new Token(TokenType.TERMINAL, value);
-                            return lastToken;
-                        } else if ("=".contains((char)nextInt + "")) {
-                            
-                        } else {
-                            value += ch;
-                            break;
-                        }
-                    }
-                    
-                    
-                        //                        
-//                    } else {
-//                        if (nextInt == -1) {
-//                            value += ch;
-//                            lastToken = new Token(TokenType.TERMINAL, value);
-//                            return lastToken;
-//                        } else if (".|[]{}<>".contains((char)nextInt + "")) {
-//                            
-//                        } else {
-//                            
-//                        }
-//                    }
-//                    
-//                    
-//                    if (".|[]{}<>".contains(ch + "") && !(value.charAt(value.length() - 1) == '\\')) {
-//                        throw new IllegalArgumentException("Terminals cannot contain metasymbols or angle brackets.");
-//                    } else if (Character.isWhitespace(ch) && !(value.charAt(value.length() - 1) == '\\')) {
-//                        lastToken = new Token(TokenType.TERMINAL, value);
-//                        return lastToken;
-//                    } else if (ch == '=' && value.endsWith("::") && !value.endsWith("\\::")) {
-//                        throw new IllegalArgumentException("Whitespace must separate terminals and metasymbols");
-//                    } else {
-//                        value += ch;
-//                        break;
-//                    }
-                }
-                case IN_NONTERMINAL: { // TODO fix so it accounts for nextInt metasymbols and end of inputs
-                    value += ch;
-                    if (ch == '\n') {
-                        throw new IllegalArgumentException("Nonterminals cannot contain newlines.");
-                    } else if (ch == '<') {
-                        throw new IllegalArgumentException("Nonterminals cannot contain angle brackets.");
-                    } else if (ch == '>') {
-                        lastToken = new Token(TokenType.NONTERMINAL, value);
-                        return lastToken;
-                    } else if (nextInt == -1) {
-                        throw new IllegalArgumentException("Nonterminal at end of input doesn't have closing angle bracket.");
-                    } else {
-                        break;
-                    }
-                }
-                case IN_DEFINED: { // TODO test, fix so it accounts for nextInt metasymbols and end of inputs
-                    value += ch;
-                    if (value.startsWith("::=") && value.length() == 3) {
-                        lastToken = new Token(TokenType.METASYMBOL, value);
-                        return lastToken;
-                    } else if (value.startsWith("::") && value.length() == 2) {
-                        if (nextInt == -1) {
-                            lastToken = new Token(TokenType.TERMINAL, value);
-                            return lastToken;
-                        } else if ((char)nextInt != '=') {
-                            state = States.IN_TERMINAL;
-                            break;
-                        } else {
-                            break;
-                        }
+                    } else if (">".contains(ch + "")) {
+                        throw new IllegalStateException("No token can start with '>'.");
                     } else {
                         state = States.IN_TERMINAL;
                         break;
                     }
-                                                            
-//                    if (value.startsWith("::") && value.length() == 2) {
-//                        break;
-//                    } else if (value.startsWith("::=") && value.length() == 3) {
-//                        lastToken = new Token(TokenType.METASYMBOL, value);
-//                        return lastToken;
-//                    } else {
-//                        state = States.IN_TERMINAL;
-//                        break;
-//                    }
+                }
+                case IN_TERMINAL: {
+                    if (Character.isWhitespace(ch)) { // done
+                        lastToken = new Token(TokenType.TERMINAL, value.toString());
+                        return lastToken;
+                    } else if (".|[]{}<>".contains(ch + "")) {
+                        try {
+                            input.reset();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        lastToken = new Token(TokenType.TERMINAL, value.toString());
+                        return lastToken;
+                    } else if (ch == ':') {
+                        try {
+                            input.reset();
+                            input.mark(3);
+                            readInt = input.read();
+                            nextInt = input.read();
+                            secondInt = input.read();
+                            input.reset();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        ch = ':';
+                        if (nextInt == -1 || secondInt == -1) {
+                            try {
+                                readInt = input.read();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            value.append(ch);
+                            break;
+                        } else if ((char)nextInt == ':' && (char)secondInt == '=') {
+                            lastToken = new Token(TokenType.TERMINAL, value.toString());
+                            return lastToken;
+                        } else {
+                            try {
+                                readInt = input.read();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            value.append(ch);
+                            break;
+                        }
+                    } else if (ch == '\\') { // done
+                        state = States.IN_ESCAPED;
+                        break;
+                    } else { // done
+                        value.append(ch);
+                        break;
+                    }
+                }
+                case IN_ESCAPED: {
+                    value.append(ch);
+                    state = States.IN_TERMINAL;
+                    break;
+                }
+                case IN_NONTERMINAL: {
+                    value.append(ch);
+                    if (ch == '\n') {
+                        throw new IllegalStateException("Nonterminals cannot contain newlines.");
+                    } else if (ch == '<' && !(value.toString().endsWith("\\<"))) {
+                        throw new IllegalStateException("Nonterminals cannot contain angle brackets.");
+                    } else if (ch == '>' && !(value.toString().endsWith("\\>"))) {
+                        lastToken = new Token(TokenType.NONTERMINAL, value.toString());
+                        return lastToken;
+                    } else {
+                        break;
+                    }
+                }
+                case IN_DEFINED: {
+                    if (Character.isWhitespace(ch)) {
+                        lastToken = new Token(TokenType.TERMINAL, value.toString());
+                        return lastToken;
+                    } else {
+                        if (":=".contains(ch + "")) {
+                            value.append(ch);
+                            if (value.toString().equals("::=")) {
+                                lastToken = new Token(TokenType.METASYMBOL, value.toString());
+                                return lastToken;
+                            } else if (value.toString().equals("::")) {
+                                break;
+                            } else {
+                                state = States.IN_TERMINAL;
+                                break;
+                            }                            
+                        } else if (".|[]{}<>".contains(ch + "")) {
+                            try {
+                                input.reset();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            lastToken = new Token(TokenType.METASYMBOL, value.toString());
+                            return lastToken;
+                        } else {
+                            value.append(ch);
+                            state = States.IN_TERMINAL;
+                            break;
+                        }
+                    }
                 }
                 default: {
-//                    lastToken = new Token(TokenType.ERROR, value); 
-//                    return lastToken;
+                    throw new IllegalStateException("Something went wrong with your input.");
                 }
             }
         } while (hasNext());
-        if (value != "") {
+        if (value.toString() != "") {
             if (state == States.IN_TERMINAL) {
-                lastToken = new Token(TokenType.TERMINAL, value);
+                lastToken = new Token(TokenType.TERMINAL, value.toString());
                 return lastToken;
             } else if (state == States.IN_NONTERMINAL) {
-//                lastToken = new Token(TokenType.NONTERMINAL, value);
-//                return lastToken;
-                throw new IllegalArgumentException("Nonterminal at end of input doesn't have closing angle bracket.");
+                if (value.toString().endsWith(">")) {
+                    lastToken = new Token(TokenType.NONTERMINAL, value.toString());
+                    return lastToken;
+                } else {
+                    throw new IllegalArgumentException("Nonterminal at end of input doesn't have closing angle bracket.");    
+                }
             } else if (state == States.IN_DEFINED) {
-                lastToken = new Token(TokenType.TERMINAL, value);
+                lastToken = new Token(TokenType.TERMINAL, value.toString());
                 return lastToken;
             }
         }
