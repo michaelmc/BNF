@@ -21,7 +21,8 @@ public class BnfTokenizerTest {
     BnfTokenizer tokenizerDef1;
     BnfTokenizer tokenizerMeta1;
     BnfTokenizer tokenizerMeta2;
-
+    BnfTokenizer newLines;
+    
     @Before
     public void setUp() throws Exception {
         tokenizerEmpty = new BnfTokenizer(new StringReader(""));
@@ -37,6 +38,7 @@ public class BnfTokenizerTest {
         tokenizerDef1 = new BnfTokenizer(new StringReader("foo::=bar"));
         tokenizerMeta1 = new BnfTokenizer(new StringReader("\\{foobar\\}"));
         tokenizerMeta2 = new BnfTokenizer(new StringReader("\\{ foobar \\}"));
+        newLines = new BnfTokenizer(new StringReader("\n\n\n\n\n\n\n\n\n\n\n\n\n"));
     }
 
     @Test
@@ -144,6 +146,9 @@ public class BnfTokenizerTest {
         assertTrue(tokenizerMeta2.hasNext());
         assertEquals(new Token(TokenType.TERMINAL, "}"), tokenizerMeta2.next());
         assertFalse(tokenizerMeta2.hasNext());
+        
+        assertTrue(newLines.hasNext());
+        assertEquals(null, newLines.next());
     }
 
     @Test(expected=IllegalArgumentException.class)
