@@ -211,7 +211,7 @@ public class BnfTokenizer implements Iterator<Token> {
                     lastToken = new Token(TokenType.NONTERMINAL, value.toString());
                     return lastToken;
                 } else {
-                    throw new IllegalArgumentException("Nonterminal at end of input doesn't have closing angle bracket.");    
+                    throw new IllegalStateException("Nonterminal at end of input doesn't have closing angle bracket.");    
                 }
             } else if (state == States.IN_DEFINED) {
                 lastToken = new Token(TokenType.TERMINAL, value.toString());

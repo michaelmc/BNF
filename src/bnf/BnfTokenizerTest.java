@@ -22,6 +22,16 @@ public class BnfTokenizerTest {
     BnfTokenizer tokenizerMeta1;
     BnfTokenizer tokenizerMeta2;
     BnfTokenizer newLines;
+    BnfTokenizer slasher1;
+    BnfTokenizer slasher2;
+    BnfTokenizer slasher3;
+    BnfTokenizer slasher4;
+    BnfTokenizer bnf1;
+    BnfTokenizer bnf2;
+    BnfTokenizer bnf3;
+    BnfTokenizer bnf4;
+    BnfTokenizer bnf5;
+    BnfTokenizer bnf6;
     
     @Before
     public void setUp() throws Exception {
@@ -39,6 +49,16 @@ public class BnfTokenizerTest {
         tokenizerMeta1 = new BnfTokenizer(new StringReader("\\{foobar\\}"));
         tokenizerMeta2 = new BnfTokenizer(new StringReader("\\{ foobar \\}"));
         newLines = new BnfTokenizer(new StringReader("\n\n\n\n\n\n\n\n\n\n\n\n\n"));
+        slasher1 = new BnfTokenizer(new StringReader("foo\tbar"));
+        slasher2 = new BnfTokenizer(new StringReader("foo\\tbar"));
+        slasher3 = new BnfTokenizer(new StringReader("foo\\\tbar"));
+        slasher4 = new BnfTokenizer(new StringReader("foo\\\\tbar"));
+        bnf1 = new BnfTokenizer(new StringReader("<BNF> ::= { <rule> }."));
+        bnf2 = new BnfTokenizer(new StringReader("<rule> ::= <nonterminal> \\::= <definition> { \\| <definition> } \\. ."));
+        bnf3 = new BnfTokenizer(new StringReader("<definition> ::= { <term> }."));
+        bnf4 = new BnfTokenizer(new StringReader("<term> ::= <terminal> | <nonterminal> | <option> | <any number of>."));
+        bnf5 = new BnfTokenizer(new StringReader("<option> ::= \\[ <definition> \\]."));
+        bnf6 = new BnfTokenizer(new StringReader("<any number of> ::= \\{ <definition> \\}."));
     }
 
     @Test
@@ -61,7 +81,7 @@ public class BnfTokenizerTest {
     }
 
     @Test
-    public void testNext() {
+    public void testNext() {        
         assertTrue(tokenizerTerminal.hasNext());
         assertEquals(new Token(TokenType.TERMINAL, "terminal"), tokenizerTerminal.next());
         assertFalse(tokenizerTerminal.hasNext());
@@ -149,13 +169,89 @@ public class BnfTokenizerTest {
         
         assertTrue(newLines.hasNext());
         assertEquals(null, newLines.next());
+        
+        assertEquals(new Token(TokenType.TERMINAL, "foo"), slasher1.next());
+        assertEquals(new Token(TokenType.TERMINAL, "bar"), slasher1.next());
+        assertEquals(new Token(TokenType.TERMINAL, "footbar"), slasher2.next());
+        assertEquals(new Token(TokenType.TERMINAL, "foo\tbar"), slasher3.next());
+        assertEquals(new Token(TokenType.TERMINAL, "foo\\tbar"), slasher4.next());
+        
+        assertEquals(new Token(TokenType.NONTERMINAL, "<BNF>"), bnf1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), bnf1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "{"), bnf1.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<rule>"), bnf1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "}"), bnf1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), bnf1.next());
+        assertFalse(bnf1.hasNext());
+        
+        assertEquals(new Token(TokenType.NONTERMINAL, "<rule>"), bnf2.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), bnf2.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<nonterminal>"), bnf2.next());
+        assertEquals(new Token(TokenType.TERMINAL, "::="), bnf2.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<definition>"), bnf2.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "{"), bnf2.next());
+        assertEquals(new Token(TokenType.TERMINAL, "|"), bnf2.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<definition>"), bnf2.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "}"), bnf2.next());
+        assertEquals(new Token(TokenType.TERMINAL, "."), bnf2.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), bnf2.next());
+        
+        assertEquals(new Token(TokenType.NONTERMINAL, "<definition>"), bnf3.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), bnf3.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "{"), bnf3.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<term>"), bnf3.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "}"), bnf3.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), bnf3.next());
+        
+        assertEquals(new Token(TokenType.NONTERMINAL, "<term>"), bnf4.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), bnf4.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<terminal>"), bnf4.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "|"), bnf4.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<nonterminal>"), bnf4.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "|"), bnf4.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<option>"), bnf4.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "|"), bnf4.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<any number of>"), bnf4.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), bnf4.next());
+        
+        assertEquals(new Token(TokenType.NONTERMINAL, "<option>"), bnf5.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), bnf5.next());
+        assertEquals(new Token(TokenType.TERMINAL, "["), bnf5.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<definition>"), bnf5.next());
+        assertEquals(new Token(TokenType.TERMINAL, "]"), bnf5.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), bnf5.next());
+        
+        assertEquals(new Token(TokenType.NONTERMINAL, "<any number of>"), bnf6.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), bnf6.next());
+        assertEquals(new Token(TokenType.TERMINAL, "{"), bnf6.next());
+        assertEquals(new Token(TokenType.NONTERMINAL, "<definition>"), bnf6.next());
+        assertEquals(new Token(TokenType.TERMINAL, "}"), bnf6.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), bnf6.next());
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=IllegalStateException.class)
     public void testNextNotClosedNT() {
         assertTrue(tokenizerNotClosedNonterminal.hasNext());
         assertEquals(new Token(TokenType.NONTERMINAL, "<nottermina lwhat"), tokenizerNotClosedNonterminal.next());
         assertFalse(tokenizerNotClosedNonterminal.hasNext());
+    }
+    
+    @Test(expected=IllegalStateException.class)
+    public void testNextOpenBracket() {
+        BnfTokenizer newTokenizer = new BnfTokenizer(new StringReader(">some stuff")); 
+        newTokenizer.next();
+    }
+    
+    @Test(expected=IllegalStateException.class)
+    public void testNextNewLineNonterminal() {
+        BnfTokenizer newTokenizer = new BnfTokenizer(new StringReader("<some\nstuff>")); 
+        newTokenizer.next();
+    }
+    
+    @Test(expected=IllegalStateException.class)
+    public void testNextAngleBrackets() {
+        BnfTokenizer newTokenizer = new BnfTokenizer(new StringReader("<some<stuff")); 
+        newTokenizer.next();
     }
     
     @Test
