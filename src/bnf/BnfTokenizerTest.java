@@ -32,6 +32,8 @@ public class BnfTokenizerTest {
     BnfTokenizer bnf4;
     BnfTokenizer bnf5;
     BnfTokenizer bnf6;
+    BnfTokenizer moreTests1;
+    BnfTokenizer moreTests2;
     
     @Before
     public void setUp() throws Exception {
@@ -48,6 +50,8 @@ public class BnfTokenizerTest {
         tokenizerDef1 = new BnfTokenizer(new StringReader("foo::=bar"));
         tokenizerMeta1 = new BnfTokenizer(new StringReader("\\{foobar\\}"));
         tokenizerMeta2 = new BnfTokenizer(new StringReader("\\{ foobar \\}"));
+        moreTests1 = new BnfTokenizer(new StringReader("::=|{}\\{\\}..."));
+        moreTests2 = new BnfTokenizer(new StringReader("<::=|{}\\{\\}...>")); 
         newLines = new BnfTokenizer(new StringReader("\n\n\n\n\n\n\n\n\n\n\n\n\n"));
         slasher1 = new BnfTokenizer(new StringReader("foo\tbar"));
         slasher2 = new BnfTokenizer(new StringReader("foo\\tbar"));
@@ -227,6 +231,18 @@ public class BnfTokenizerTest {
         assertEquals(new Token(TokenType.NONTERMINAL, "<definition>"), bnf6.next());
         assertEquals(new Token(TokenType.TERMINAL, "}"), bnf6.next());
         assertEquals(new Token(TokenType.METASYMBOL, "."), bnf6.next());
+        
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), moreTests1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "|"), moreTests1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "{"), moreTests1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "}"), moreTests1.next());
+        assertEquals(new Token(TokenType.TERMINAL, "{}"), moreTests1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), moreTests1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), moreTests1.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), moreTests1.next());
+        
+        assertEquals(new Token(TokenType.NONTERMINAL, "<::=|{}\\{\\}...>"), moreTests2.next());
+        
     }
 
     @Test(expected=IllegalStateException.class)
