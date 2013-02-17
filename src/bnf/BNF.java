@@ -28,7 +28,13 @@ public class BNF {
         while (rulesTokenizer.hasNext()) {
             // read in the rules one by one
             currentToken = rulesTokenizer.next();
-            
+            if (currentToken.getType() == TokenType.NONTERMINAL) {
+                
+            } else if (currentToken.getType() == TokenType.TERMINAL) {
+                
+            } else if (currentToken.getType() == TokenType.METASYMBOL) {
+                
+            }
         }
     }
     
