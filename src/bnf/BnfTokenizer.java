@@ -1,6 +1,3 @@
-/**
- * 
- */
 package bnf;
 
 import java.io.IOException;
@@ -9,8 +6,30 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * @author mvm
- *
+ * A tokenizer that parses and generates tokens from Backus-Naur Form (BNF) 
+ * notation. Tokens can be TERMINAL, NONTERMINAL, or METASYMBOL.
+ * 
+ * NONTERMINAL: enclosed by left and right angle brackets and may contain
+ * any character except angle brackets (even escaped) or newline.
+ * 
+ * METASYMBOL: ::=, ., |, [, ], {, or }
+ * 
+ * TERMINAL: any other set of characters unbroken by unescaped whitespace/
+ * whitespace characters or unescaped metasymbols.
+ * 
+ * Implements the Iterator interface, and allows the user to tell if there 
+ * is more of the Reader input to parse (hasNext()), to get the next token
+ * (next()), and to go back (back()) so the most recent token is given again
+ * by next().
+ * 
+ * The remove() function is unsupported.
+ * 
+ * Much of the initial structure of the state machine derives from Professor
+ * David Matuszek's slides on state machines and tokenizers, though it has
+ * been heavily modified to handle BNF input.
+ * 
+ * @author Michael McLaughlin, mvm@cis.upenn.edu
+ * @version CIT594 Spring 2013
  */
 public class BnfTokenizer implements Iterator<Token> {
     private Reader input;
@@ -19,7 +38,10 @@ public class BnfTokenizer implements Iterator<Token> {
     private boolean useLastToken;
     
     /**
-     * @param reader
+     * Constructor for the BnfTokenizer. Accepts any Reader as input, typically
+     * a StringReader or BufferedReader.
+     * 
+     * @param reader A Reader object or subclass object to parse.
      */
     public BnfTokenizer(java.io.Reader reader) {
         input = reader;
@@ -27,6 +49,14 @@ public class BnfTokenizer implements Iterator<Token> {
         useLastToken = false;
     }
 
+    /**
+     * Tells whether there is more input to be read from the Reader. Having
+     * more characters to be read does not guarantee that any are valid
+     * tokens, so a subsequent call of next() may return null rather than a
+     * token.
+     * 
+     * @return true if there is more to be read from the Reader
+     */
     @Override
     public boolean hasNext() {
         try {
@@ -44,6 +74,15 @@ public class BnfTokenizer implements Iterator<Token> {
         return false;
     }
 
+    /**
+     * Generates and returns the next token from the input. May generate tokens
+     * of the types NONTERMINAL, TERMINAL, or METASYMBOL. May return null if
+     * there are no more valid tokens to be generated from the input.
+     * 
+     * @throws IllegalStateException in the case of malformed BNF input.
+     * 
+     * @return the next token from the Reader.
+     */
     @Override
     public Token next() {
         if (useLastToken == true) {
@@ -97,7 +136,7 @@ public class BnfTokenizer implements Iterator<Token> {
                     }
                 }
                 case IN_TERMINAL: {
-                    if (Character.isWhitespace(ch)) { // done
+                    if (Character.isWhitespace(ch)) {
                         lastToken = new Token(TokenType.TERMINAL, value.toString());
                         return lastToken;
                     } else if (".|[]{}<>".contains(ch + "")) {
@@ -140,10 +179,10 @@ public class BnfTokenizer implements Iterator<Token> {
                             value.append(ch);
                             break;
                         }
-                    } else if (ch == '\\') { // done
+                    } else if (ch == '\\') {
                         state = States.IN_ESCAPED;
                         break;
-                    } else { // done
+                    } else {
                         value.append(ch);
                         break;
                     }
@@ -226,16 +265,24 @@ public class BnfTokenizer implements Iterator<Token> {
         return null;
     }
     
+    /**
+     * Goes back one token, so the next call to next() will return the same
+     * token as the most recent previous call to next().
+     * 
+     * This is not cumulative--the same most recent token will be returned
+     * again no matter how many times back() is called.
+     */
     public void back() {
         useLastToken = true;        
     }
     
+    /**
+     * This function is not supported by the BnfTokenizer class.
+     * 
+     * @throws UnsupportedOperationException
+     */
     @Override
     public void remove() {
         throw new UnsupportedOperationException("Remove is not supported.");
     }
-    
-    
-
-
 }
