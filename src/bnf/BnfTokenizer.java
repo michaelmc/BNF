@@ -149,9 +149,14 @@ public class BnfTokenizer implements Iterator<Token> {
                     }
                 }
                 case IN_ESCAPED: {
-                    value.append(ch);
-                    state = States.IN_TERMINAL;
-                    break;
+                    if (ch == 'n' || ch == 't' || ch == 'r') {
+                        lastToken = new Token(TokenType.TERMINAL, value.toString());
+                        return lastToken;
+                    } else {
+                        value.append(ch);
+                        state = States.IN_TERMINAL;
+                        break;
+                    }
                 }
                 case IN_NONTERMINAL: {
                     value.append(ch);

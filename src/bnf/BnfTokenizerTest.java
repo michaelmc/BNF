@@ -34,6 +34,8 @@ public class BnfTokenizerTest {
     BnfTokenizer bnf6;
     BnfTokenizer moreTests1;
     BnfTokenizer moreTests2;
+    BnfTokenizer moreTests3;
+    BnfTokenizer moreTests4;
     
     @Before
     public void setUp() throws Exception {
@@ -44,7 +46,7 @@ public class BnfTokenizerTest {
         tokenizerNotClosedNonterminal = new BnfTokenizer(new StringReader("<nottermina lwhat"));
         tokenizerSplitTerminal = new BnfTokenizer(new StringReader("abc\\ abc"));
         tokenizerSplitTerminal2 = new BnfTokenizer(new StringReader("<answer>::=ye\ns|no."));
-        tokenizerSlashed = new BnfTokenizer(new StringReader("<nonterminal>::=\\f\\o\\o\\|\\b\\a\\r"));
+        tokenizerSlashed = new BnfTokenizer(new StringReader("<nonterminal>::=\\f\\o\\o\\|\\b\\ar"));
         tokenizerUnslashed = new BnfTokenizer(new StringReader("<nont\\erminal>::=foo|b\\::=ar. "));
         tokenizerDefinedLoop = new BnfTokenizer(new StringReader("foo::\\=bar"));
         tokenizerDef1 = new BnfTokenizer(new StringReader("foo::=bar"));
@@ -52,6 +54,8 @@ public class BnfTokenizerTest {
         tokenizerMeta2 = new BnfTokenizer(new StringReader("\\{ foobar \\}"));
         moreTests1 = new BnfTokenizer(new StringReader("::=|{}\\{\\}..."));
         moreTests2 = new BnfTokenizer(new StringReader("<::=|{}\\{\\}...>")); 
+        moreTests3 = new BnfTokenizer(new StringReader("<nonterminal> ::= \\<= \\<\\<."));
+        moreTests4 = new BnfTokenizer(new StringReader("<nonterminal> ::= \\>= \\>\\<.\\<\\>"));
         newLines = new BnfTokenizer(new StringReader("\n\n\n\n\n\n\n\n\n\n\n\n\n"));
         slasher1 = new BnfTokenizer(new StringReader("foo\tbar"));
         slasher2 = new BnfTokenizer(new StringReader("foo\\tbar"));
@@ -176,7 +180,8 @@ public class BnfTokenizerTest {
         
         assertEquals(new Token(TokenType.TERMINAL, "foo"), slasher1.next());
         assertEquals(new Token(TokenType.TERMINAL, "bar"), slasher1.next());
-        assertEquals(new Token(TokenType.TERMINAL, "footbar"), slasher2.next());
+        assertEquals(new Token(TokenType.TERMINAL, "foo"), slasher2.next());
+        assertEquals(new Token(TokenType.TERMINAL, "bar"), slasher2.next());
         assertEquals(new Token(TokenType.TERMINAL, "foo\tbar"), slasher3.next());
         assertEquals(new Token(TokenType.TERMINAL, "foo\\tbar"), slasher4.next());
         
@@ -243,6 +248,19 @@ public class BnfTokenizerTest {
         
         assertEquals(new Token(TokenType.NONTERMINAL, "<::=|{}\\{\\}...>"), moreTests2.next());
         
+        assertEquals(new Token(TokenType.NONTERMINAL, "<nonterminal>"), moreTests3.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), moreTests3.next());
+        assertEquals(new Token(TokenType.TERMINAL, "<="), moreTests3.next());
+        assertEquals(new Token(TokenType.TERMINAL, "<<"), moreTests3.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), moreTests3.next());
+        
+        assertEquals(new Token(TokenType.NONTERMINAL, "<nonterminal>"), moreTests4.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "::="), moreTests4.next());
+        assertEquals(new Token(TokenType.TERMINAL, ">="), moreTests4.next());
+        assertEquals(new Token(TokenType.TERMINAL, "><"), moreTests4.next());
+        assertEquals(new Token(TokenType.METASYMBOL, "."), moreTests4.next());
+        assertEquals(new Token(TokenType.TERMINAL, "<>"), moreTests4.next());
+
     }
 
     @Test(expected=IllegalStateException.class)
