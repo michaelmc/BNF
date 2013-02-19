@@ -10,7 +10,9 @@ import java.util.HashMap;
  * @version CIT594 Spring 2013
  */
 public class BNF {
+    private enum States { READY, IN_KEY, IN_DEFINED, IN_SEQUENCE, IN_ANYNUM, IN_OPTION };
     HashMap<Token, Tree<Token>> rules;
+    BnfTokenizer rulesTokenizer;
 
     /**
      * 
@@ -23,17 +25,38 @@ public class BNF {
      * @param reader
      */
     public void read(Reader reader) {
-        BnfTokenizer rulesTokenizer = new BnfTokenizer(reader);
+        rulesTokenizer = new BnfTokenizer(reader);
+        Token currentKey = null;
+        Tree<Token> currentRule = null;
         Token currentToken = null;
+        States state;
+        state = States.READY;
         while (rulesTokenizer.hasNext()) {
-            // read in the rules one by one
             currentToken = rulesTokenizer.next();
-            if (currentToken.getType() == TokenType.NONTERMINAL) {
-                
-            } else if (currentToken.getType() == TokenType.TERMINAL) {
-                
-            } else if (currentToken.getType() == TokenType.METASYMBOL) {
-                
+            switch (state) {
+            case READY:
+                if (currentKey == null) {
+                    currentKey = currentToken;
+                    break;
+                } else {
+                    if (currentToken.getValue() != "::=") {
+                        throw new IllegalStateException("Assignment statement not follows be \"defined as\" operator.");
+                    }
+                    state = States.IN_SEQUENCE;
+                    break;
+                }
+            case IN_SEQUENCE:
+                break;
+            case IN_ANYNUM:
+                break;
+            case IN_DEFINED:
+                break;
+            case IN_KEY:
+                break;
+            case IN_OPTION:
+                break;
+            default:
+                break;
             }
         }
     }
