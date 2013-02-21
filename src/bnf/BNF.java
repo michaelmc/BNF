@@ -53,7 +53,7 @@ public class BNF {
     }
     
     public boolean is_or() {
-        return false;
+        
     }
     
     public boolean is_option() {
