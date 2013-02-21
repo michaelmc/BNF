@@ -4,21 +4,23 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Stack;
 
 /**
  * @author Michael McLaughlin, mvm@cis.upenn.edu
  * @version CIT594 Spring 2013
  */
 public class BNF {
-    private enum States { READY, IN_KEY, IN_DEFINED, IN_SEQUENCE, IN_ANYNUM, IN_OPTION };
     HashMap<Token, Tree<Token>> rules;
     BnfTokenizer rulesTokenizer;
+    Stack<Tree<Token>> stack;
 
     /**
      * 
      */
     public BNF() {
         this.rules = new HashMap<Token, Tree<Token>>();
+        this.stack = new Stack<Tree<Token>>();
     }
     
     /**
@@ -29,36 +31,37 @@ public class BNF {
         Token currentKey = null;
         Tree<Token> currentRule = null;
         Token currentToken = null;
-        States state;
-        state = States.READY;
         while (rulesTokenizer.hasNext()) {
             currentToken = rulesTokenizer.next();
-            switch (state) {
-            case READY:
-                if (currentKey == null) {
-                    currentKey = currentToken;
-                    break;
-                } else {
-                    if (currentToken.getValue() != "::=") {
-                        throw new IllegalStateException("Assignment statement not follows be \"defined as\" operator.");
-                    }
-                    state = States.IN_SEQUENCE;
-                    break;
-                }
-            case IN_SEQUENCE:
-                break;
-            case IN_ANYNUM:
-                break;
-            case IN_DEFINED:
-                break;
-            case IN_KEY:
-                break;
-            case IN_OPTION:
-                break;
-            default:
-                break;
-            }
+            
         }
+    }
+    
+    public void makeTree(int rootIndex, int...childIndices) {
+        Tree<Token> root = getStackItem(rootIndex);
+        for (int i = 0; i < childIndices.length; i++) {
+            root.addChild(getStackItem(childIndices[i]));
+        }
+        for (int i = 0; i <= childIndices.length; i++) {
+            stack.pop();
+        }
+        stack.push(root);
+    }
+    
+    private Tree<Token> getStackItem(int n) {
+        return stack.get(stack.size() - n);
+    }
+    
+    public boolean is_or() {
+        return false;
+    }
+    
+    public boolean is_option() {
+        return false;
+    }
+    
+    public boolean is_anynum() {
+        return false;
     }
     
     /**
@@ -97,8 +100,10 @@ public class BNF {
         public void addChild(int index, Tree<T> child) {
             children.add(index, child);
         }
+        public void addChild(Tree<T> child) {
+            children.add(children.size(), child);
+        }
         
-        @SuppressWarnings("unchecked")
         public void addChildren(Tree<T>... children) {
             for (int i = 0; i < children.length; i++) {
                 addChild(i + children.length, children[0]);
