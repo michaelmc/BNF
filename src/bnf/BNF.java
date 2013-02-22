@@ -14,6 +14,7 @@ public class BNF {
     HashMap<Token, Tree<Token>> rules;
     BnfTokenizer rulesTokenizer;
     Stack<Tree<Token>> stack;
+    Token currentToken;
 
     /**
      * 
@@ -21,6 +22,7 @@ public class BNF {
     public BNF() {
         this.rules = new HashMap<Token, Tree<Token>>();
         this.stack = new Stack<Tree<Token>>();
+        this.currentToken = null;
     }
     
     /**
@@ -28,13 +30,12 @@ public class BNF {
      */
     public void read(Reader reader) {
         rulesTokenizer = new BnfTokenizer(reader);
-        Token currentKey = null;
-        Tree<Token> currentRule = null;
-        Token currentToken = null;
-        while (rulesTokenizer.hasNext()) {
-            currentToken = rulesTokenizer.next();
-            
-        }
+//        Token currentKey = null;
+//        Tree<Token> currentRule = null;
+//        while (rulesTokenizer.hasNext()) {
+//            currentToken = rulesTokenizer.next();
+//            
+//        }
     }
     
     public void makeTree(int rootIndex, int...childIndices) {
@@ -52,16 +53,110 @@ public class BNF {
         return stack.get(stack.size() - n);
     }
     
-    public boolean is_or() {
-        
-    }
-    
-    public boolean is_option() {
+    public boolean isRule() {
+        if (isNonterminal()) {
+            if (currentToken.getValue() == "::=" & 
+                    currentToken.getType() == TokenType.METASYMBOL) {
+                if (isDefinition()) {
+                    
+                }
+                while (isDefinition()) {
+                    
+                }
+            }
+        }
         return false;
     }
     
-    public boolean is_anynum() {
+    public boolean isDefinition() {
+        if (!isTerm()) {
+            rulesTokenizer.back();
+            currentToken = null;
+            return false;
+        } else {
+            stack.add(new Tree<Token>(currentToken));
+            // make tree?
+        }
+        while (isTerm()) {
+            stack.add(new Tree<Token>(currentToken));
+            // make tree?
+        }
+        return true;
+    }
+    
+    // TODO something circular going on here.
+    public boolean isTerm() {
+        if (isOption() || isAnyNum() || isTerminal() || isNonterminal()) {
+            System.out.println(currentToken.getValue());
+            return true;
+        }
         return false;
+    }
+    
+    public boolean isOption() {
+        currentToken = rulesTokenizer.next();
+        if (currentToken.getValue().equals("[")) {
+            if (isDefinition()) {
+                currentToken = rulesTokenizer.next();
+                if (currentToken.getValue().equals("]")) {
+                    stack.add(new Tree<Token>(currentToken));
+                    // make tree here;
+                    return true;
+                } else {
+                    throw new IllegalArgumentException("No closing bracket for Optional clause.");
+                }
+            } else {
+                throw new IllegalArgumentException("Optional clause doesn't contain a Definition.");
+            }
+        }
+        rulesTokenizer.back();
+        currentToken = null;
+        return false;
+    }
+    
+    public boolean isAnyNum() {
+        currentToken = rulesTokenizer.next();
+        if (currentToken.getValue().equals("{")) {
+            if (isDefinition()) {
+                currentToken = rulesTokenizer.next();
+                if (currentToken.getValue().equals("}")) {
+                    stack.add(new Tree<Token>(currentToken));
+                    // make tree here;
+                    return true;
+                } else {
+                    throw new IllegalArgumentException("No closing brace for Any Number clause.");
+                }
+            } else {
+                throw new IllegalArgumentException("Any Number clause doesn't contain a Definition.");
+            }
+        }
+        rulesTokenizer.back();
+        currentToken = null;
+        return false;
+    }
+    
+    public boolean isTerminal() {
+        currentToken = rulesTokenizer.next();
+        if (currentToken.getType() == TokenType.TERMINAL) {
+            stack.add(new Tree<Token>(currentToken));
+            return true;
+        } else {
+            rulesTokenizer.back();
+            currentToken = null;
+            return false;
+        }
+    }
+    
+    public boolean isNonterminal() {
+        currentToken = rulesTokenizer.next();
+        if (currentToken.getType() == TokenType.NONTERMINAL) {
+            stack.add(new Tree<Token>(currentToken));
+            return true;
+        } else {
+            rulesTokenizer.back();
+            currentToken = null;
+            return false;
+        }
     }
     
     /**
@@ -104,6 +199,7 @@ public class BNF {
             children.add(children.size(), child);
         }
         
+        @SuppressWarnings("unchecked")
         public void addChildren(Tree<T>... children) {
             for (int i = 0; i < children.length; i++) {
                 addChild(i + children.length, children[0]);
