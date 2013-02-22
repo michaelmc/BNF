@@ -69,66 +69,26 @@ public class BNF {
     }
     
     public boolean isDefinition() {
-        if (!isTerm()) {
-            rulesTokenizer.back();
-            currentToken = null;
-            return false;
-        } else {
-            stack.add(new Tree<Token>(currentToken));
-            // make tree?
-        }
-        while (isTerm()) {
-            stack.add(new Tree<Token>(currentToken));
-            // make tree?
-        }
-        return true;
+        return false;
     }
     
     // TODO something circular going on here.
     public boolean isTerm() {
-        if (isOption() || isAnyNum() || isTerminal() || isNonterminal()) {
-            System.out.println(currentToken.getValue());
-            return true;
-        }
         return false;
     }
     
     public boolean isOption() {
-        currentToken = rulesTokenizer.next();
-        if (currentToken.getValue().equals("[")) {
-            if (isDefinition()) {
-                currentToken = rulesTokenizer.next();
-                if (currentToken.getValue().equals("]")) {
-                    stack.add(new Tree<Token>(currentToken));
-                    // make tree here;
-                    return true;
-                } else {
-                    throw new IllegalArgumentException("No closing bracket for Optional clause.");
-                }
-            } else {
-                throw new IllegalArgumentException("Optional clause doesn't contain a Definition.");
-            }
-        }
-        rulesTokenizer.back();
-        currentToken = null;
-        return false;
+        return true;
     }
     
     public boolean isAnyNum() {
-        currentToken = rulesTokenizer.next();
+        if (currentToken == null) {
+            currentToken = rulesTokenizer.next();
+        }
         if (currentToken.getValue().equals("{")) {
-            if (isDefinition()) {
-                currentToken = rulesTokenizer.next();
-                if (currentToken.getValue().equals("}")) {
-                    stack.add(new Tree<Token>(currentToken));
-                    // make tree here;
-                    return true;
-                } else {
-                    throw new IllegalArgumentException("No closing brace for Any Number clause.");
-                }
-            } else {
-                throw new IllegalArgumentException("Any Number clause doesn't contain a Definition.");
-            }
+            stack.add((new Tree<Token>(currentToken));
+            currentToken = rulesTokenizer.next();
+            if currentToken
         }
         rulesTokenizer.back();
         currentToken = null;

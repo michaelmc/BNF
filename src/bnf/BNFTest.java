@@ -14,12 +14,12 @@ public class BNFTest {
 //    Token term3 = new Token(TokenType.TERMINAL, "<terminal>");
 //    Token nonterm1 = new Token(TokenType.NONTERMINAL, "<nonterminal>");
 //    Token nonterm2 = new Token(TokenType.NONTERMINAL, "<othernonterminal>");
-    StringReader terminalString = new StringReader("terminal");
-    StringReader optionalString = new StringReader("[ <nonterminal> ]");
-    StringReader anyNumString = new StringReader("{ <nonterminal> }");
-    StringReader terms = new StringReader("terminal \\{ anynum \\} \\[ option \\] <nonterminal>");
-    StringReader mostlyTerms = new StringReader("terminal \\{ anynum \\} | \\[ option \\] <nonterminal>");
-    StringReader tntTokens = new StringReader("terminal <nonterminal> otherterminal <othernonterminal> \\<terminal\\>");
+    String terminalString = "terminal";
+    String optionalString = "\\[ <nonterminal> \\]";
+    String anyNumString = "\\{ <nonterminal> \\}";
+    String terms = "terminal \\{ anynum \\} \\[ <option> \\] <nonterminal>";
+    String mostlyTerms = "terminal \\{ anynum \\} | \\[ option \\] <nonterminal>";
+    String tntTokens = "terminal <nonterminal> otherterminal <othernonterminal> \\<terminal\\>";
     BNF parser;
     
     @BeforeClass
@@ -58,48 +58,28 @@ public class BNFTest {
 
     @Test
     public final void testIsTerm() {
-        parser.read(terms);
-        assertTrue(parser.isTerm());
-        assertTrue(parser.isTerm());
-        assertTrue(parser.isTerm());
-        assertTrue(parser.isTerm());
-        
-        parser.read(mostlyTerms);
-        assertTrue(parser.isTerm());
-        assertTrue(parser.isTerm());
-        assertFalse(parser.isTerm());
-        parser.rulesTokenizer.next();
-        assertTrue(parser.isTerm());
-        assertTrue(parser.isTerm());
+        fail("Not yet implemented");
     }
 
     @Test
     public final void testIsOption() {
-        parser.read(optionalString);
-        assertFalse(parser.isAnyNum());
-        assertFalse(parser.isTerminal());
-        assertFalse(parser.isNonterminal());
-        assertTrue(parser.isOption());
+        fail("Not yet implemented");
     }
 
     @Test
     public final void testIsAnyNum() {
-        parser.read(anyNumString);
-        assertFalse(parser.isOption());
-        assertFalse(parser.isTerminal());
-        assertFalse(parser.isNonterminal());
-        assertTrue(parser.isAnyNum());
+        fail("Not yet implemented");
     }
 
     @Test
     public final void testIsTerminal() {
-        parser.read(terminalString);
+        parser.read(new StringReader(terminalString));
         assertTrue(parser.isTerminal());
     }
 
     @Test
     public final void testIsNonterminal() {
-        parser.read(tntTokens);
+        parser.read(new StringReader(tntTokens));
         assertEquals(null, parser.currentToken);
         assertTrue(parser.isTerminal());
         assertEquals("terminal", parser.currentToken.getValue());
