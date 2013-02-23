@@ -35,7 +35,7 @@ public class BnfTokenizer implements Iterator<Token> {
     private Reader input;
     private enum States { READY, IN_TERMINAL, IN_NONTERMINAL, IN_METASYMBOL, IN_ESCAPED, IN_DEFINED };
     private Token lastToken;
-    private boolean useLastToken;
+    boolean useLastToken;
     
     /**
      * Constructor for the BnfTokenizer. Accepts any Reader as input, typically
@@ -95,9 +95,9 @@ public class BnfTokenizer implements Iterator<Token> {
         int secondInt = -1;
         States state;
         StringBuilder value = new StringBuilder();
-        if (!hasNext()) {
-            throw new NoSuchElementException("No more characters in the input.");
-        }
+//        if (!hasNext()) {
+//            throw new NoSuchElementException("No more characters in the input.");
+//        }
         state = States.READY;
         do {
             try {

@@ -1,6 +1,5 @@
 package bnf;
 
-import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +14,7 @@ public class BNF {
     BnfTokenizer rulesTokenizer;
     Stack<Tree<Token>> stack;
     Token currentToken;
-
+    Token currentKey;
     /**
      * 
      */
@@ -23,19 +22,27 @@ public class BNF {
         this.rules = new HashMap<Token, Tree<Token>>();
         this.stack = new Stack<Tree<Token>>();
         this.currentToken = null;
+        this.currentKey = null;
     }
     
     /**
      * @param reader
      */
-    public void read(Reader reader) {
+    public void read(java.io.Reader reader) {
         rulesTokenizer = new BnfTokenizer(reader);
-//        Token currentKey = null;
-//        Tree<Token> currentRule = null;
-//        while (rulesTokenizer.hasNext()) {
-//            currentToken = rulesTokenizer.next();
-//            
-//        }
+        while (rulesTokenizer.hasNext()) {
+//            System.out.println(rulesTokenizer.next().toString());
+            try {
+                boolean success = isRule();
+                System.out.println("Parsed okay?  " + success);
+//                System.out.println(stack.peek());
+//                stack.peek().print();
+            } catch (RuntimeException e) {
+                System.out.println("***Runtime*** " + e.getMessage());
+            } catch (Exception e) {
+                System.out.println("***Input*** " + e.getMessage());
+            }
+        }
     }
     
     public void makeTree(int rootIndex, int...childIndices) {
@@ -53,70 +60,160 @@ public class BNF {
         return stack.get(stack.size() - n);
     }
     
+    public boolean nextTokenEquals(String value) {
+        if (! rulesTokenizer.hasNext() && ! rulesTokenizer.useLastToken) {
+            return false;
+        }                
+        Token t = rulesTokenizer.next();
+        if (t.getValue().equals(value)) {
+            stack.push(new Tree<Token>(t));
+            return true;
+        }
+        rulesTokenizer.back();
+        return false;
+    }
+    public boolean nextTokenEquals(String value, TokenType type) {
+        if (! rulesTokenizer.hasNext() && ! rulesTokenizer.useLastToken) {
+            return false;
+        }                
+        Token t = rulesTokenizer.next();
+        if (t.getValue().equals(value) && t.getType().equals(type)) {
+            stack.push(new Tree<Token>(t));
+            return true;
+        }
+        rulesTokenizer.back();
+        return false;
+    }
+    
+    public void error(String message) {
+        throw new RuntimeException(message);
+    }
+    
     public boolean isRule() {
         if (isNonterminal()) {
-            if (currentToken.getValue() == "::=" & 
-                    currentToken.getType() == TokenType.METASYMBOL) {
+            currentKey = stack.pop().getValue();
+            if (nextTokenEquals("::=")) {
+                stack.pop();
                 if (isDefinition()) {
-                    
+                    makeTree(1);
+                } 
+                while (! nextTokenEquals(".") && rulesTokenizer.hasNext()) {
+                    if (nextTokenEquals("|")) {
+                        stack.pop();
+                        if (isDefinition()) {
+                            stack.push(new Tree<Token>(new Token(TokenType.OR, "OR")));
+                            makeTree(1, 3, 2);
+                        } else {
+                            error ("No definition followed a '|'");
+                        }
+                        while (nextTokenEquals("|")) {
+                            stack.pop();
+                            if (isDefinition()) {
+                                makeTree(2, 1);
+                            } else {
+                                error("No definition followed a '|'");
+                            }
+                        }
+                    } else {
+                        if (isDefinition()) {
+                            // what
+                        }
+                    }
                 }
-                while (isDefinition()) {
-                    
-                }
+                if (stack.peek().getValue().equals(".")) stack.pop();
+                rules.put(currentKey, stack.pop());
+                return true;
             }
+            error("Rule doesn't contain a '::=' in the second position.");
         }
         return false;
     }
     
     public boolean isDefinition() {
+        if (isTerm()) {
+            if (isTerm()) {
+                stack.push(new Tree<Token>(new Token(TokenType.SEQUENCE, "SEQUENCE")));
+                makeTree(1, 3, 2);
+                while (isTerm()) {
+                    makeTree(2, 1);
+                }
+            }
+            return true;
+        }
         return false;
     }
     
-    // TODO something circular going on here.
     public boolean isTerm() {
+        if (isOption()) {
+            return true;
+        }
+        if (isAnyNum()) {
+            return true;
+        }
+        if (isTerminal()) {
+            return true;
+        }
+        if (isNonterminal()) {
+            return true;
+        }
         return false;
     }
     
     public boolean isOption() {
-        return true;
-    }
-    
-    public boolean isAnyNum() {
-        if (currentToken == null) {
-            currentToken = rulesTokenizer.next();
+        if (nextTokenEquals("[", TokenType.METASYMBOL)) {
+            stack.pop();
+            stack.push(new Tree<Token>(new Token(TokenType.OPTION, "OPTION")));
+            if (! isDefinition()) error("No definition following '[");
+            if (! nextTokenEquals("]")) error("No closing bracket.");
+            stack.pop();
+            makeTree(2, 1);
+            return true;
         }
-        if (currentToken.getValue().equals("{")) {
-            stack.add((new Tree<Token>(currentToken));
-            currentToken = rulesTokenizer.next();
-            if currentToken
-        }
-        rulesTokenizer.back();
-        currentToken = null;
         return false;
     }
     
+    public boolean isAnyNum() {
+        if (nextTokenEquals("{", TokenType.METASYMBOL)) {
+            stack.pop();
+            stack.push(new Tree<Token>(new Token(TokenType.ANYNUM, "ANYNUM")));
+            if (! isDefinition()) error("No definition following '{");
+            if (! nextTokenEquals("}")) error("No closing brace.");
+            stack.pop();
+            makeTree(2, 1);
+            return true;
+        }
+        return false;
+    }
+//    
+//    public boolean isChoice() {
+//        return false;
+//    }
+    
     public boolean isTerminal() {
-        currentToken = rulesTokenizer.next();
-        if (currentToken.getType() == TokenType.TERMINAL) {
-            stack.add(new Tree<Token>(currentToken));
+        if (! rulesTokenizer.hasNext() && ! rulesTokenizer.useLastToken) {
+            return false;
+        }                
+        Token t = rulesTokenizer.next();
+        if (t.getType() == TokenType.TERMINAL) {
+            stack.add(new Tree<Token>(t));
             return true;
         } else {
             rulesTokenizer.back();
-            currentToken = null;
             return false;
         }
     }
     
     public boolean isNonterminal() {
-        currentToken = rulesTokenizer.next();
-        if (currentToken.getType() == TokenType.NONTERMINAL) {
-            stack.add(new Tree<Token>(currentToken));
-            return true;
-        } else {
-            rulesTokenizer.back();
-            currentToken = null;
+        if (! rulesTokenizer.hasNext() && ! rulesTokenizer.useLastToken) {
             return false;
+        }                
+        Token t = rulesTokenizer.next();
+        if (t.getType() == TokenType.NONTERMINAL) {
+            stack.push(new Tree<Token>(t));
+            return true;
         }
+        rulesTokenizer.back();
+        return false;
     }
     
     /**
@@ -165,5 +262,35 @@ public class BNF {
                 addChild(i + children.length, children[0]);
             }
         }
+        
+        @Override
+        public String toString() {
+            String s = value.toString();
+            if (children.size() > 0) {
+                s += "(";
+                for (Tree<T> child : children) {
+                    s += child.toString() + " ";
+                }
+                s = s.substring(0, s.length() - 1) + ")";
+            }
+            return s;
+        }
+        
+        public void print() {
+            this.printHelper(1);
+        }
+
+        void printHelper(int level) {
+            System.out.println(this.value + "");
+            if (this.children.size() > 0) {
+                for (int i = 0; i < this.children.size(); i++) {
+                    for (int j = 0; j < level; j++) {
+                        System.out.print("|  ");
+                    }
+                    children.get(i).printHelper(level + 1);
+                }
+            }
+        }
+
     }
 }

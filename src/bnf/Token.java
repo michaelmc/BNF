@@ -59,6 +59,10 @@ public class Token {
 	    return this.type == that.type && this.value.equals(that.value);
 	}
 	
+	public int hashCode() {
+        return value.hashCode();
+	}
+	
 	/**
 	 * Returns a string representation of the token, of the format:
 	 * value:type

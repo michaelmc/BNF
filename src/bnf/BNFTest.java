@@ -9,17 +9,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class BNFTest {
-//    Token term1 = new Token(TokenType.TERMINAL, "terminal");
-//    Token term2 = new Token(TokenType.TERMINAL, "otherterminal");
-//    Token term3 = new Token(TokenType.TERMINAL, "<terminal>");
-//    Token nonterm1 = new Token(TokenType.NONTERMINAL, "<nonterminal>");
-//    Token nonterm2 = new Token(TokenType.NONTERMINAL, "<othernonterminal>");
-    String terminalString = "terminal";
-    String optionalString = "\\[ <nonterminal> \\]";
-    String anyNumString = "\\{ <nonterminal> \\}";
-    String terms = "terminal \\{ anynum \\} \\[ <option> \\] <nonterminal>";
-    String mostlyTerms = "terminal \\{ anynum \\} | \\[ option \\] <nonterminal>";
-    String tntTokens = "terminal <nonterminal> otherterminal <othernonterminal> \\<terminal\\>";
     BNF parser;
     
     @BeforeClass
@@ -38,7 +27,19 @@ public class BNFTest {
 
     @Test
     public final void testRead() {
-        fail("Not yet implemented");
+//        fail("Not yet implemented");
+        parser.read(new StringReader("<nt> ::= foo. <ont> ::= bar."));
+        assertEquals(2, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<ont>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<ont>")).print();
+        
+        parser = new BNF();
+        parser.read(new StringReader("<nt> ::= foo | bar | what."));
+        assertEquals(1, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
     }
 
     @Test
@@ -63,40 +64,63 @@ public class BNFTest {
 
     @Test
     public final void testIsOption() {
-        fail("Not yet implemented");
+        parser = new BNF();
+        parser.read(new StringReader("<nt> ::= [ optional ]."));
+        assertEquals(1, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
+        
+        parser = new BNF();
+        parser.read(new StringReader("<nt> ::= [ { optional } ]."));
+        assertEquals(1, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
+        
+        parser = new BNF();
+        parser.read(new StringReader("<nt> ::= [ \\{ optional \\} ]."));
+        assertEquals(1, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
+
+        parser = new BNF();
+        parser.read(new StringReader("<nt> ::= [ \\{ optional \\} ]"));
+        assertEquals(1, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
     }
 
     @Test
     public final void testIsAnyNum() {
-        fail("Not yet implemented");
+        parser = new BNF();
+        parser.read(new StringReader("<nt> ::= { anynum }."));
+        assertEquals(1, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
+
+        parser = new BNF();
+        parser.read(new StringReader("<nt> ::= { { anynum } }."));
+        assertEquals(1, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
+
     }
 
     @Test
     public final void testIsTerminal() {
-        parser.read(new StringReader(terminalString));
-        assertTrue(parser.isTerminal());
+        parser = new BNF();
+        parser.read(new StringReader("<nt> ::= foo."));
+        assertEquals(1, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
     }
 
     @Test
     public final void testIsNonterminal() {
-        parser.read(new StringReader(tntTokens));
-        assertEquals(null, parser.currentToken);
-        assertTrue(parser.isTerminal());
-        assertEquals("terminal", parser.currentToken.getValue());
-        assertFalse(parser.isTerminal());
-        assertEquals(null, parser.currentToken);
-        assertTrue(parser.isNonterminal());
-        assertEquals("<nonterminal>", parser.currentToken.getValue());
-        assertFalse(parser.isNonterminal());
-        assertEquals(null, parser.currentToken);
-        assertTrue(parser.isTerminal());
-        assertEquals("otherterminal", parser.currentToken.getValue());
-        assertFalse(parser.isTerminal());
-        assertEquals(null, parser.currentToken);
-        assertTrue(parser.isNonterminal());
-        assertEquals("<othernonterminal>", parser.currentToken.getValue());
-        assertTrue(parser.isTerminal());
-        assertEquals("<terminal>", parser.currentToken.getValue());
+        parser = new BNF();
+        parser.read(new StringReader("<nt> ::= <foo>."));
+        assertEquals(1, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<nt>")).print();
     }
 
     @Test
