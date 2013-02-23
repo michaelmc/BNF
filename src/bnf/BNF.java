@@ -1,8 +1,10 @@
 package bnf;
 
+import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.Stack;
 
 /**
@@ -13,16 +15,17 @@ public class BNF {
     HashMap<Token, Tree<Token>> rules;
     BnfTokenizer rulesTokenizer;
     Stack<Tree<Token>> stack;
-    Token currentToken;
     Token currentKey;
+    StringBuilder string;
+
     /**
      * 
      */
     public BNF() {
         this.rules = new HashMap<Token, Tree<Token>>();
         this.stack = new Stack<Tree<Token>>();
-        this.currentToken = null;
         this.currentKey = null;
+        this.string = null;
     }
     
     /**
@@ -120,7 +123,7 @@ public class BNF {
                         }
                     }
                 }
-                if (stack.peek().getValue().equals(".")) stack.pop();
+                if (stack.peek().getValue().getValue().equals(".")) stack.pop();
                 rules.put(currentKey, stack.pop());
                 return true;
             }
@@ -220,7 +223,57 @@ public class BNF {
      * @param writer
      */
     public void write(Writer writer) {
-        
+        string = new StringBuilder();
+        Iterator<Entry<Token, Tree<Token>>> entries = rules.entrySet().iterator();
+        Entry<Token, Tree<Token>> entry = null;
+        while (entries.hasNext()) {
+            entry = entries.next();
+            string.append(entry.getKey().getValue() + " ::= ");
+            writeHelper(entry.getValue());
+            string.append(".\n");
+        }
+        try {
+            writer.append(string.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println(string.toString());
+    }
+    
+    void writeHelper(Tree<Token> tree) {
+        if (tree.getValue().getType() == TokenType.SEQUENCE) {
+            for (int i = 0; i < tree.getNumberOfChildren(); i++) {
+                writeHelper(tree.getChild(i));
+            }
+        } else if (tree.getValue().getType() == TokenType.OR) {
+            for (int i = 0; i < tree.getNumberOfChildren(); i++) {
+                writeHelper(tree.getChild(i));
+                string.append("| ");
+            }
+            string.deleteCharAt(string.length() - 1);
+            string.deleteCharAt(string.length() - 1);
+        } else if (tree.getValue().getType() == TokenType.ANYNUM) {
+            string.append("{ ");
+            for (int i = 0; i < tree.getNumberOfChildren(); i++) {
+                writeHelper(tree.getChild(i));
+            }
+            string.append("} ");
+        } else if (tree.getValue().getType() == TokenType.OPTION) {
+            string.append("[");
+            for (int i = 0; i < tree.getNumberOfChildren(); i++) {
+                writeHelper(tree.getChild(i));
+            }
+            string.append("] ");
+        } else {
+            String val = tree.getValue().getValue();
+            if (".|[]{}".contains(val)) {
+                string.append("\\" + val + " ");
+            } else if ("::=".equals(val)) {
+                string.append("\\::= ");
+            } else {
+                string.append(val + " ");
+            }
+        }
     }
     
     /**
@@ -228,69 +281,70 @@ public class BNF {
      * @return
      */
     public Tree<Token> lookUp(String nonterminal) {
+        if (!nonterminal.startsWith("<")) nonterminal = "<" + nonterminal;
+        if (!nonterminal.endsWith(">")) nonterminal += ">";
         return rules.get(new Token(TokenType.NONTERMINAL, nonterminal));
     }
     
-    /**
-     * @author mvm
-     *
-     * @param <T>
-     */
-    public class Tree<T> {
-        T value;
-        ArrayList<Tree<T>> children;
-        
-        public Tree(T token) {
-            value = token;
-            children = new ArrayList<Tree<T>>();
-        }
-        
-        public T getValue() {
-            return value;
-        }
-        
-        public void addChild(int index, Tree<T> child) {
-            children.add(index, child);
-        }
-        public void addChild(Tree<T> child) {
-            children.add(children.size(), child);
-        }
-        
-        @SuppressWarnings("unchecked")
-        public void addChildren(Tree<T>... children) {
-            for (int i = 0; i < children.length; i++) {
-                addChild(i + children.length, children[0]);
-            }
-        }
-        
-        @Override
-        public String toString() {
-            String s = value.toString();
-            if (children.size() > 0) {
-                s += "(";
-                for (Tree<T> child : children) {
-                    s += child.toString() + " ";
-                }
-                s = s.substring(0, s.length() - 1) + ")";
-            }
-            return s;
-        }
-        
-        public void print() {
-            this.printHelper(1);
-        }
-
-        void printHelper(int level) {
-            System.out.println(this.value + "");
-            if (this.children.size() > 0) {
-                for (int i = 0; i < this.children.size(); i++) {
-                    for (int j = 0; j < level; j++) {
-                        System.out.print("|  ");
-                    }
-                    children.get(i).printHelper(level + 1);
-                }
-            }
-        }
-
-    }
+//    /**
+//     * @author mvm
+//     *
+//     * @param <T>
+//     */
+//    public class Tree<T> {
+//        T value;
+//        ArrayList<Tree<T>> children;
+//        
+//        public Tree(T token) {
+//            value = token;
+//            children = new ArrayList<Tree<T>>();
+//        }
+//        
+//        public T getValue() {
+//            return value;
+//        }
+//        
+//        public void addChild(int index, Tree<T> child) {
+//            children.add(index, child);
+//        }
+//        public void addChild(Tree<T> child) {
+//            children.add(children.size(), child);
+//        }
+//        
+//        @SuppressWarnings("unchecked")
+//        public void addChildren(Tree<T>... children) {
+//            for (int i = 0; i < children.length; i++) {
+//                addChild(i + children.length, children[0]);
+//            }
+//        }
+//        
+//        @Override
+//        public String toString() {
+//            String s = value.toString();
+//            if (children.size() > 0) {
+//                s += "(";
+//                for (Tree<T> child : children) {
+//                    s += child.toString() + " ";
+//                }
+//                s = s.substring(0, s.length() - 1) + ")";
+//            }
+//            return s;
+//        }
+//        
+//        public void print() {
+//            this.printHelper(1);
+//        }
+//
+//        void printHelper(int level) {
+//            System.out.println(this.value + "");
+//            if (this.children.size() > 0) {
+//                for (int i = 0; i < this.children.size(); i++) {
+//                    for (int j = 0; j < level; j++) {
+//                        System.out.print("|  ");
+//                    }
+//                    children.get(i).printHelper(level + 1);
+//                }
+//            }
+//        }
+//    }
 }
