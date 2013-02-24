@@ -5,30 +5,21 @@ import static org.junit.Assert.*;
 import java.io.StringReader;
 import java.io.StringWriter;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class BNFTest {
     BNF parser;
     
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        parser = new BNF();
-    }
-
     @Test
     public final void testBNF() {
-        fail("Not yet implemented");
+        parser = new BNF();
+        assertEquals(0, parser.rules.size());
+        assertEquals(0,  parser.stack.size());
     }
 
     @Test
     public final void testRead() {
-//        fail("Not yet implemented");
+        parser = new BNF();
         parser.read(new StringReader("<nt> ::= foo. <ont> ::= bar."));
         assertEquals(2, parser.rules.size());
         assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<nt>")));
@@ -63,21 +54,52 @@ public class BNFTest {
     public final void testMakeTree() {
         fail("Not yet implemented");
     }
+    
+    @Test
+    public final void testGetStackItem() {
+        fail("Not yet implemented");        
+    }
+    
+    @Test
+    public final void testNextTokenEquals() {
+        fail("Not yet implemented");
+    }
 
+    @Test
+    public final void testError() {
+        fail("Not yet implemented");
+    }
+    
     @Test
     public final void testIsRule() {
-        fail("Not yet implemented");
+        parser = new BNF();
+        parser.read(new StringReader("<BNF> ::= { <rule> }. <rule> ::= <nonterminal> \\::= <definition> { \\| <definition> } \\. . <definition> ::= { <term> }.<term> ::= <terminal> | <nonterminal> | <option> | <any number of>. <option> ::= \\[ <definition> \\]. <any number of> ::= \\{ <definition> \\}."));
+        assertEquals(6, parser.rules.size());
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<BNF>")));
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<rule>")));
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<definition>")));
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<term>")));
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<option>")));
+        assertTrue(parser.rules.containsKey(new Token(TokenType.NONTERMINAL, "<any number of>")));
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<BNF>")).print();
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<rule>")).print();
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<definition>")).print();
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<term>")).print();
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<option>")).print();
+        parser.rules.get(new Token(TokenType.NONTERMINAL, "<any number of>")).print();
     }
 
-    @Test
-    public final void testIsDefinition() {
-        fail("Not yet implemented");
-    }
-
-    @Test
-    public final void testIsTerm() {
-        fail("Not yet implemented");
-    }
+    /*
+     * isDefinition() and isTerm() are tested implicitly in the above and below
+     * tests. Because on their reliance on a stack and the rest of the
+     * surrounding methods, it is impractical to test them directly. Term only
+     * tests for one of isOption, isAnyNum, isTerminal, or isNonterminal, all
+     * tested extensively below.
+     * 
+     * isDefinition tests for one or more terms, which are also extensively
+     * implicitly tested above and below.
+     * 
+     */
 
     @Test
     public final void testIsOption() {
@@ -148,7 +170,6 @@ public class BNFTest {
         parser.read(new StringReader("<BNF> ::= <rule>."));
         stringy = new StringWriter();
         parser.write(stringy);
-        System.out.println(stringy.toString());
         assertEquals("<BNF> ::= <rule> .\n", stringy.toString());
         
         parser = new BNF();
@@ -156,11 +177,12 @@ public class BNFTest {
         stringy = new StringWriter();
         parser.write(stringy);
         String shouldBe = "<definition> ::= { <term> } .\n<term> ::= <terminal> | <nonterminal> | <option> | <any number of> .\n<rule> ::= <nonterminal> \\::= <definition> { \\| <definition> } \\. .\n<BNF> ::= { <rule> } .\n<any number of> ::= \\{ <definition> \\} .\n<option> ::= \\[ <definition> \\] .\n";
-        System.out.println("String: ");
-        System.out.println(shouldBe);
-        System.out.println("Actual: ");
-        System.out.println(stringy.toString());
         assertEquals(shouldBe, stringy.toString());
+    }
+    
+    @Test
+    public final void testWriteHelper() {
+        
     }
 
     @Test

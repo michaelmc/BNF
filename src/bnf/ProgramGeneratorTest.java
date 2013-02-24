@@ -83,27 +83,33 @@ public class ProgramGeneratorTest {
 
     @Test
     public final void testPrintList() {
-        ProgramGenerator.readString("<nt> ::= <trees> <leaves>. <trees> ::= bark . <leaves> ::= twig | berry .");
-        List<String> nt = ProgramGenerator.expand("nt");
-        ProgramGenerator.printList(nt);
-        
-        ProgramGenerator.readString("<program> ::= <input> <processing> <output> ;; .\n" + 
-        		"<input> ::= read <var> { , <var> } ; .\n" + 
-        		"<output> ::= write <var> { & <var> } .\n" + 
-        		"<processing> ::= <action> { <action> } .\n" + 
-        		"<action> ::= <loop> | <operation> .\n" + 
-        		"<loop> ::= <if statement> | <while loop> .\n" + 
-        		"<if statement> ::= if <condition> then <operation> { elif <condition> then <operation> } [ else <operation> ] ; .\n" + 
-        		"<while loop> ::= while <condition> do <action> ; .\n" + 
-        		"<operation> ::= <assignment> | <calc> .\n" + 
-        		"<calc> ::= <term> <operator> <term> ; .\n" + 
-        		"<assignment> ::= <var> := <term>; . \n" + 
-        		"<condition> ::= [ not ] <term> = <term> .\n" + 
-        		"<operator> ::= + | - | * | / | % .\n" + 
-        		"<term> ::= <var> | <int> .\n" + 
-        		"<var> ::= a | b | c | d | e | f | g | h | i | j .\n" + 
-        		"<int> ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 .");
-        List<String> max = ProgramGenerator.expand("<program>");
-        ProgramGenerator.printList(max);
+        /* 
+         * These test methods are commented out to not pollute the console
+         * during unit testing (this is an output-only method) but can be 
+         * uncommented as seen fit for checking.
+         */
+//        ProgramGenerator.readString("<nt> ::= <trees> <leaves>. <trees> ::= bark . <leaves> ::= twig | berry .");
+//        List<String> nt = ProgramGenerator.expand("nt");
+//        ProgramGenerator.printList(nt);
+//        System.out.println("\n");
+//        
+//        ProgramGenerator.readString("<program> ::= <input> <processing> <output> ;; .\n" + 
+//        		"<input> ::= read <var> { , <var> } ; .\n" + 
+//        		"<output> ::= write <var> { & <var> } .\n" + 
+//        		"<processing> ::= <action> { <action> } .\n" + 
+//        		"<action> ::= <loop> | <operation> .\n" + 
+//        		"<loop> ::= <if statement> | <while loop> .\n" + 
+//        		"<if statement> ::= if <condition> then <operation> { elif <condition> then <operation> } [ else <operation> ] ; .\n" + 
+//        		"<while loop> ::= while <condition> do <action> ; .\n" + 
+//        		"<operation> ::= <assignment> | <calc> .\n" + 
+//        		"<calc> ::= <term> <operator> <term> ; .\n" + 
+//        		"<assignment> ::= <var> := <term>; . \n" + 
+//        		"<condition> ::= [ not ] <term> = <term> .\n" + 
+//        		"<operator> ::= + | - | * | / | % .\n" + 
+//        		"<term> ::= <var> | <int> .\n" + 
+//        		"<var> ::= a | b | c | d | e | f | g | h | i | j .\n" + 
+//        		"<int> ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 .");
+//        List<String> max = ProgramGenerator.expand("<program>");
+//        ProgramGenerator.printList(max);
     }
 }

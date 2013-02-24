@@ -13,12 +13,12 @@ import java.util.Random;
 import javax.swing.JFileChooser;
 
 /**
- * A class to read a BNF grammar and generate 'programs' that comply with that
- * grammar. ProgramGenerator reads a file containing a complete BNF grammar and
- * then tokenizes and parses the grammar. Once complete, it can generate
- * the 'programs' by expanding the BNF grammar rules from a specified starting
- * point, and has the ability to print those 'programs' to the System.out 
- * channel.
+ * A class to read a BNF grammar. It then can generate programs that comply 
+ * with that grammar. ProgramGenerator reads a file containing a complete BNF 
+ * grammar and then tokenizes and parses the grammar. Once complete, it can
+ * generate the 'programs' by expanding the BNF grammar rules from a specified
+ * starting point, and has the ability to print those 'programs' to the 
+ * System.out channel.
  * 
  * Assignment 5, Part 2 in Prof. Dave Matuszek's CIT594 course, Spring 2013
  * 
@@ -27,30 +27,6 @@ import javax.swing.JFileChooser;
  * 
  * @author Michael McLaughlin, mvm@cis.upenn.edu
  * @version CIT594 Spring 2013, 2/25/2013
- */
-/**
- * @author mvm
- *
- */
-/**
- * @author mvm
- *
- */
-/**
- * @author mvm
- *
- */
-/**
- * @author mvm
- *
- */
-/**
- * @author mvm
- *
- */
-/**
- * @author mvm
- *
  */
 public class ProgramGenerator {
     static BNF bnfParser = new BNF();
@@ -89,7 +65,7 @@ public class ProgramGenerator {
     /**
      * Expands a given term to a set of terminals. If the term is the 
      * nonterminal of the highest-level rule of a BNF grammar (usually 
-     * <program>), this will create a grammar-compliant 'program'.
+     * &lt;program&gt;), this will create a grammar-compliant 'program'.
      * 
      * If the given term is not found in the keys of nonterminals of the
      * current BNF grammar, it is treated as a terminal; terminals are simply

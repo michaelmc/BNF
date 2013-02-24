@@ -41,7 +41,7 @@ public class BNF {
      * entire set of tokens at once. The source must comply with Extended 
      * Backus-Naur Form grammar; particularly each rule must be of the form:
      * 
-     * <pre><nonterminal></pre> ::= <i>the definition of the nonterminal</i> .
+     * <pre>&lt;nonterminal&gt;</pre> ::= <i>the definition of the nonterminal</i> .
      * 
      * Rules missing a period or definition symbol (::=) will cause errors in 
      * the parsing of the grammar.
@@ -101,7 +101,7 @@ public class BNF {
      * @param n The position of the item to get from the stack.
      * @return The Tree from that position on the stack.
      */
-    private Tree<Token> getStackItem(int n) {
+    Tree<Token> getStackItem(int n) {
         return stack.get(stack.size() - n);
     }
     
@@ -170,7 +170,7 @@ public class BNF {
      * Checks a set of tokens in sequence to determine whether they comprise 
      * a valid BNF rule of the form:
      * 
-     * <pre><nonterminal></pre> ::= <i>definition(s)</i> .
+     * <pre>&lt;nonterminal&gt;</pre> ::= <i>definition(s)</i> .
      * 
      * Each rule must begin with a nonterminal followed by a '::=' and a valid
      * definition. After the definition, the rule may contain alternating pipes
