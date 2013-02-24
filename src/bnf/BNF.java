@@ -34,16 +34,14 @@ public class BNF {
     public void read(java.io.Reader reader) {
         rulesTokenizer = new BnfTokenizer(reader);
         while (rulesTokenizer.hasNext()) {
-//            System.out.println(rulesTokenizer.next().toString());
             try {
-                boolean success = isRule();
-                System.out.println("Parsed okay?  " + success);
-//                System.out.println(stack.peek());
-//                stack.peek().print();
+                isRule();
             } catch (RuntimeException e) {
                 System.out.println("***Runtime*** " + e.getMessage());
+                throw new RuntimeException("Read ending: fix input and try again.");
             } catch (Exception e) {
                 System.out.println("***Input*** " + e.getMessage());
+                throw new RuntimeException("Read ending: fix input and try again.");
             }
         }
     }
@@ -101,6 +99,7 @@ public class BNF {
                     makeTree(1);
                 } 
                 while (! nextTokenEquals(".") && rulesTokenizer.hasNext()) {
+                    if (nextTokenEquals("::=", TokenType.METASYMBOL)) error("Misplaced '::='");
                     if (nextTokenEquals("|")) {
                         stack.pop();
                         if (isDefinition()) {
@@ -117,9 +116,11 @@ public class BNF {
                                 error("No definition followed a '|'");
                             }
                         }
+                    } else if (nextTokenEquals("::=", TokenType.METASYMBOL)) { 
+                        error("Misplaced '::='");
                     } else {
                         if (isDefinition()) {
-                            // what
+                            // what TODO
                         }
                     }
                 }
@@ -237,7 +238,7 @@ public class BNF {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(string.toString());
+//        System.out.println(string.toString());
     }
     
     void writeHelper(Tree<Token> tree) {

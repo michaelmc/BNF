@@ -1,0 +1,16 @@
+<program> ::= <input> <processing> <output> ;; .
+<input> ::= read <var> { , <var> } ; .
+<output> ::= write <var> { & <var> } .
+<processing> ::= <action> { <action> } .
+<action> ::= <loop> | <operation> .
+<loop> ::= <if statement> | <while loop> .
+<if statement> ::= if <condition> then <operation> { elif <condition> then <operation> } [ else <operation> ] ; .
+<while loop> ::= while <condition> do <action> ; .
+<operation> ::= <assignment> | <calc> .
+<calc> ::= <term> <operator> <term> ; .
+<assignment> ::= <var> := <term>; . 
+<condition> ::= [ not ] <term> = <term> .
+<operator> ::= + | - | * | / | % .
+<term> ::= <var> | <int> .
+<var> ::= a | b | c | d | e | f | g | h | i | j .
+<int> ::= 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 .

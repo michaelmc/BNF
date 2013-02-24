@@ -30,7 +30,7 @@ public class Tree<T> {
     @SuppressWarnings("unchecked")
     public void addChildren(Tree<T>... children) {
         for (int i = 0; i < children.length; i++) {
-            addChild(i + children.length, children[0]);
+            addChild(this.getNumberOfChildren(), children[i]);
         }
     }
     

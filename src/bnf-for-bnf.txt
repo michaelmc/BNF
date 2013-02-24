@@ -1,0 +1,6 @@
+<BNF> ::= { <rule> }.
+<rule> ::= <nonterminal> \::= <definition> { \| <definition> } \. .
+<definition> ::= { <term> }.
+<term> ::= <terminal> | <nonterminal> | <option> | <any number of>.
+<option> ::= \[ <definition> \].
+<any number of> ::= \{ <definition> \}.
