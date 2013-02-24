@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -27,7 +28,21 @@ public class ProgramGenerator {
      * @param args
      */
     public static void main(String[] args) {
-        run();
+        bnfParser = new BNF();
+        if (args == null) {
+            readFile();
+        } else {
+            readFile(args[0]);
+        }
+        StringWriter output = new StringWriter();
+        bnfParser.write(output);
+        System.out.println("Maximilian BNF Grammar:");
+        System.out.print(output.toString());
+        for (int i = 0; i < 4; i++) {
+            System.out.println("\n\nRandomly Generated Program " + (i + 1) + ":");
+            printList(expand("<program>"));
+            System.out.println("\n");
+        }
     }
    
     public static void run() {

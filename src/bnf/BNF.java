@@ -49,7 +49,7 @@ public class BNF {
     public void makeTree(int rootIndex, int...childIndices) {
         Tree<Token> root = getStackItem(rootIndex);
         for (int i = 0; i < childIndices.length; i++) {
-            root.addChild(getStackItem(childIndices[i]));
+            root.addChild(root.getNumberOfChildren(), getStackItem(childIndices[i]));
         }
         for (int i = 0; i <= childIndices.length; i++) {
             stack.pop();
@@ -260,7 +260,7 @@ public class BNF {
             }
             string.append("} ");
         } else if (tree.getValue().getType() == TokenType.OPTION) {
-            string.append("[");
+            string.append("[ ");
             for (int i = 0; i < tree.getNumberOfChildren(); i++) {
                 writeHelper(tree.getChild(i));
             }

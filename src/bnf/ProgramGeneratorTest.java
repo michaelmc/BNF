@@ -4,23 +4,14 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class ProgramGeneratorTest {
 
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() throws Exception {
-    }
-
     @Test
     public final void testMain() {
-        fail("Not yet implemented");
+        String[] source = new String[] {"src/maximilian_language.txt"};
+        ProgramGenerator.main(source);
     }
 
     @Test
@@ -70,7 +61,7 @@ public class ProgramGeneratorTest {
         
         Tree<Token> root5 = new Tree<Token>(new Token(TokenType.OPTION, "OPTION"));
         Tree<Token> child51 = new Tree<Token>(new Token(TokenType.TERMINAL, "one"));
-        root5.addChild(child51);
+        root5.addChild(0, child51);
         List<String> list5 = ProgramGenerator.expandTree(root5);
         String string5 = "";
         for (int i = 0; i < list5.size(); i++) {
@@ -80,7 +71,7 @@ public class ProgramGeneratorTest {
         
         Tree<Token> root6 = new Tree<Token>(new Token(TokenType.ANYNUM, "ANYNUM"));
         Tree<Token> child61 = new Tree<Token>(new Token(TokenType.TERMINAL, "one"));
-        root6.addChild(child61);
+        root6.addChild(0, child61);
         List<String> list6 = ProgramGenerator.expandTree(root6);
         String string6 = "";
         for (int i = 0; i < list6.size(); i++) {
