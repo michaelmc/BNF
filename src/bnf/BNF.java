@@ -92,8 +92,9 @@ public class BNF {
     }
     
     /**
-     * Retrieves items from a stack from their position rather than by index.
-     * Top item is 1, bottom item is the number of items on the stack.
+     * Gets items from a stack from their position rather than by index.
+     * Top item is 1, bottom item is the number of items on the stack. Items
+     * are not removed from the stack when retrieved.
      * 
      * Borrowed from slides and example code written provided by 
      * Prof. Dave Matuszek in CIT594.
